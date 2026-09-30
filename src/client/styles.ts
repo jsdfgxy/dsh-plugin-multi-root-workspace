@@ -13,20 +13,33 @@
 
 /** The stylesheet text; every class is prefixed `mrfw-` to stay collision-free. */
 export const STYLES = /* css */ `
-/* Sidebar footer row, mirroring the host ui-settings-general trigger: the row
- * wrapper overhangs each side by 2px (width calc(100% + 4px) against the
- * shell's 12px inline padding) so the icon's ink line lands at 18px from the
- * column edge — exactly where the Settings gear below sits. */
+/* Sidebar footer row. sidebar.footer.action is a LIST slot in a host-owned
+ * flex row (SidebarRoot's .footerActions, with the slot's display:contents
+ * anchor between them), so this element is a flex ITEM shared with every other
+ * plugin that registers there — dsh-context's overview card, among others.
+ *
+ * It therefore has to be a well-behaved item: shrinkable, full width only
+ * WITHIN its own share, and with no negative margin. The previous recipe
+ * (flex: none + width: calc(100% + 4px) + a negative side margin) claimed the
+ * whole row and squeezed every sibling to its bare icon — the collision
+ * reported against dsh-context. The 2px side overhang is deliberately gone:
+ * it exists to put this row's icon on the Settings gear's ink line while this
+ * is the ONLY footer entry, and it is exactly what makes two cards overlap
+ * once a neighbour exists. A cramped row ellipsizes the label instead of
+ * occluding the next plugin. */
 .mrfw-triggerRow {
-  flex: none;
+  box-sizing: border-box;
+  flex: 0 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  width: calc(100% + 4px);
-  margin: 4px -2px;
+  width: 100%;
+  margin: 4px 0;
 }
 
 .mrfw-triggerRow.mrfw-railRow {
+  flex: none;
   width: 36px;
   margin: 8px 0 10px;
 }
@@ -64,9 +77,14 @@ export const STYLES = /* css */ `
   display: inline-flex;
 }
 
+/* The label gives way first: min-width: 0 lets the flex item shrink below its
+ * content width at all, and the ellipsis keeps a narrow share readable rather
+ * than mid-glyph clipped (see .mrfw-triggerRow). */
 .mrfw-triggerLabel {
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .mrfw-triggerRail {
