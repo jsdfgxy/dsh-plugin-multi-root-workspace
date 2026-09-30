@@ -1,6 +1,6 @@
 # 开发路径文档：Multi-root Workspace（不改上游）
 
-> 状态：active（**进度总账 + 里程碑概览**）。MVP-v0.1.0（M1/M2/M3）已实施并以 `v0.1.0` 发版（2026-09-13）；v0.1.1 硬化批次（H1–H4）已实施、全绿并随 `v0.1.1` 发版（2026-09-16）；v0.1.2 支持矩阵提升（`0.1.6-alpha.2`、`0.1.7-alpha.1`）已实施并随 `v0.1.2` 发版（2026-09-22）；v0.1.3 支持矩阵提升（`0.1.7-alpha.2`、`0.1.7-rc.1`）已实施并随 `v0.1.3` 发版（2026-09-24）；v0.1.4 支持矩阵提升（`0.1.7-rc.2`）已实施并随 `v0.1.4` 发版（2026-09-25）；v0.1.5 支持矩阵提升（`0.2.0-rc.2`）已实施并随 `v0.1.5` 发版（2026-09-30）；v0.1.6 修复侧栏底部共享槽位（`sidebar.footer.action`）抢位问题，已实施并随 `v0.1.6` 发版（2026-09-30）；v0.1.7 修复该条目的对齐（恰好一个控件高、无外侧 margin），已实施并随 `v0.1.7` 发版（2026-09-30）；第二期（B 系列）范围见[需求文档 §4/§7](../../requirements/multi-root-workspace.md)。
+> 状态：active（**进度总账 + 里程碑概览**）。MVP-v0.1.0（M1/M2/M3）已实施并以 `v0.1.0` 发版（2026-09-13）；v0.1.1 硬化批次（H1–H4）已实施、全绿并随 `v0.1.1` 发版（2026-09-16）；v0.1.2 支持矩阵提升（`0.1.6-alpha.2`、`0.1.7-alpha.1`）已实施并随 `v0.1.2` 发版（2026-09-22）；v0.1.3 支持矩阵提升（`0.1.7-alpha.2`、`0.1.7-rc.1`）已实施并随 `v0.1.3` 发版（2026-09-24）；v0.1.4 支持矩阵提升（`0.1.7-rc.2`）已实施并随 `v0.1.4` 发版（2026-09-25）；v0.1.5 支持矩阵提升（`0.2.0-rc.2`）已实施并随 `v0.1.5` 发版（2026-09-30）；v0.1.6 修复侧栏底部共享槽位（`sidebar.footer.action`）抢位问题，已实施并随 `v0.1.6` 发版（2026-09-30）；v0.1.7 修复该条目的对齐（恰好一个控件高、无外侧 margin），已实施并随 `v0.1.7` 发版（2026-09-30）；v0.1.8 集成侧栏底部槽位的纵向堆叠（容器级布局归本插件，ADR-0011），已实施并随 `v0.1.8` 发版（2026-09-30）；第二期（B 系列）范围见[需求文档 §4/§7](../../requirements/multi-root-workspace.md)。
 > 设计依据：[multi-root-workspace.md](../../architecture/multi-root-workspace.md)；验收标准见 [multi-root-workspace.md](../../requirements/multi-root-workspace.md) §5。
 > 产物是本仓库（`dsh-plugin-multi-root-workspace`，包 `@dsh-electron/dsh-plugin-multi-root-workspace`），经 `dsh plugin --profile <name> add <path|git>` 安装；对上游仓库（deepseek-harness）零改动。
 > 插件仓库自建门禁（上游 `verify-cordis-config` 等仓库 gates 不适用）：lint + typecheck + vitest 全绿 + patch 快照测试。
@@ -36,6 +36,7 @@
 | v0.1.5 | compat | DSH 支持矩阵扩展至 `0.2.0-rc.2`（0.2 系列首个受支持版本）；相对 `0.1.7-rc.2` 形状未变，无新适配分支；同系列 `0.2.0-rc.1` 未实测，不在清单上 | — | [0009](../../decisions/ADR-0009-dsh-compat-contract.md) | `06a6ddc` | `v0.1.5` |
 | v0.1.6 | client | 侧栏底部动作与同槽位插件抢位：`sidebar.footer.action` 是共享 list 槽位，行样式改为可收缩的 flex item；新增不变量 10 与回归测试 | — | [0006](../../decisions/ADR-0006-client-ui-host-tokens.md) | `751b1a4` | `v0.1.6` |
 | v0.1.7 | client | 底部条目对齐：行外边距归零、恰好一个 42px 控件高、墨线对齐改由按钮内边距实现；"上下各一行"归容器级布局插件（`dsh-sidebar-footer-stack`） | — | [0006](../../decisions/ADR-0006-client-ui-host-tokens.md) | `76c6695` | `v0.1.7` |
+| v0.1.8 | client | 集成侧栏底部槽位的纵向堆叠：本插件自己声明容器 `flex-direction: column` + gap，只写几何不画卡面，与 `dsh-sidebar-footer-stack` 幂等共存 | — | [0011](../../decisions/ADR-0011-footer-slot-layout-ownership.md) | `789eb3c` | `v0.1.8` |
 | 第二期 | B 系列 | Windows 内核级多根、per-root 权限、`workspace-files` 多根、LSP 路由等 | 见[需求文档 §4/§7](../../requirements/multi-root-workspace.md) | — | — | 未开始 |
 
 ## 总体策略
@@ -285,6 +286,38 @@ MVP 三个里程碑加一个硬化批次，每一项都独立可验证，且**�
 | 发布状态与 CHANGELOG | 路线图、README（中英）的版本句与 tarball / tag 示例对齐 `v0.1.7`；[`CHANGELOG.md`](../../../CHANGELOG.md) / [`CHANGELOG.en.md`](../../../CHANGELOG.en.md) 新增 `0.1.7` 条目；故障排查条目补充对齐几何与"纵向堆叠属于容器"两节 |
 
 **版本号与 tag 由发版提交完成**（`pnpm release patch --tag` → `chore(release): v0.1.7` + annotated tag `v0.1.7`）；推送 tag（进而触发 npm 发布与 GitHub Release）是人工动作。
+
+## v0.1.8 — 集成底部槽位纵向堆叠（已实施，已发版准备完成）
+
+> 用户可见变更见 [`CHANGELOG.md`](../../../CHANGELOG.md) 的 `0.1.8` 条目；决定与边界见 [ADR-0011](../../decisions/ADR-0011-footer-slot-layout-ownership.md)。
+
+### 功能与边界（随 `v0.1.8` 发版，2026-09-30）
+
+`v0.1.7` 曾把"上下各一行"判为容器级决定、留给 `dsh-sidebar-footer-stack`。用户明确要求集成，于是按 ADR-0011 由本插件自己实现——**这是唯一可行的路径**：宿主把该槽位的容器渲染成 `display:flex` 的一行，`slot` 系统不允许注册者改变容器的 `kind` 或布局，容器又没有 `flex-wrap`，所以单个条目无法把自己换到第二行。
+
+```css
+[class*="footerActions"] { flex-direction: column !important; align-items: stretch; gap: 6px }
+[class*="collapsed"] [class*="footerActions"] { align-items: center }
+```
+
+四条边界：选择器用类名**子串**（宿主 CSS Module 的哈希前缀随构建而变）；**只写几何**（不设 `border` / `background` / `padding` / `box-shadow`，避免给布局插件的卡片套第二层框）；`!important` 只加在方向与 gap 上；与 `dsh-sidebar-footer-stack` **幂等共存**（同为 column + 6px，同时安装时计算值一致）。单条目下无视觉差异。
+
+不变量 10 随之改写：条目侧规则不变，"本插件不得改容器布局"改为"只以最小几何规则改这一个容器的方向，且绝不画卡面"。样式表头也从"每个类都带 `mrfw-` 前缀"改为"除这一条宿主容器规则外"。
+
+| 项 | 结果 |
+|---|---|
+| 契约测试 | `tests/client-styles.spec.ts` 9/9 通过；实测两类回归会被抓住——去掉 `!important`（第一条失败）、给该容器加 `border`（"geometry only" 那条失败） |
+| 构建产物 | `lib/client.js` 中确认包含 `[class*="footerActions"]` 规则 |
+| 本地门禁 | `lint`（0/0）+ `typecheck` + `build` + `test`（351 passed / 4 skipped）+ `docs:check` 全绿（2026-09-30，macOS） |
+| 视觉确认 | **未在本机完成**：需要真实浏览器里确认两张卡片确实上下各占一行 |
+
+### 发版准备（2026-09-30）
+
+| 项 | 结果 |
+|---|---|
+| 发布状态与 CHANGELOG | 路线图、README（中英）的版本句与 tarball / tag 示例对齐 `v0.1.8`；[`CHANGELOG.md`](../../../CHANGELOG.md) / [`CHANGELOG.en.md`](../../../CHANGELOG.en.md) 新增 `0.1.8` 条目（并在 `0.1.7` 条目上标注被取代）；新增 [ADR-0011](../../decisions/ADR-0011-footer-slot-layout-ownership.md) 与决策索引；故障排查条目的"纵向堆叠"一节改为本插件实现 |
+
+**版本号与 tag 由发版提交完成**（`pnpm release patch --tag` → `chore(release): v0.1.8` + annotated tag `v0.1.8`）；推送 tag（进而触发 npm 发布与 GitHub Release）是人工动作。
 
 ## 里程碑与仓库状态对照
 

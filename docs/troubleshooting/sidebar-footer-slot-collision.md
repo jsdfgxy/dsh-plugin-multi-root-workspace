@@ -99,29 +99,45 @@ Settings 齿轮的 18px 墨线。槽位是共享的，这个前提不成立，�
 按钮左内边距从宿主的 `8px` 调成 **`6px`**：图标左缘落在容器内容边 +6px，与宿主的
 `−2 + 8 = +6px` 完全一致，但完全收在自己的盒子里。
 
-## 想要"上下各一行"（纵向堆叠）
+## "上下各一行"（纵向堆叠）
 
-这是**容器级**决定，不是条目级：宿主把 `sidebar.footer.action` 声明成
-`kind: 'list'`，并自己把容器渲染成 `display:flex` 的一行，`slot` 系统不允许注册者改变
-容器的 `kind` 或布局。没有 `flex-wrap` 时，单个条目**无法**把自己换到第二行——
-`flex-basis: 100%` 只会撑破一行，不会换行。
+`v0.1.8` 起本插件**自己**把该槽位改成纵向堆叠，决定与边界见
+[ADR-0011](../decisions/ADR-0011-footer-slot-layout-ownership.md)。
 
-所以正确做法是装一个负责该槽位布局的插件，而不是让本插件去改宿主的共享容器（那正是
-本条目开头描述的越界）：
+为什么只能这样做：宿主把 `sidebar.footer.action` 声明成 `kind: 'list'`，并自己把容器
+渲染成 `display:flex` 的一行；`slot` 系统不允许注册者改变容器的 `kind` 或布局。容器没有
+`flex-wrap`，所以单个条目**无法**把自己换到第二行——`flex-basis: 100%` 只会撑破一行。
+"上下各一行"只能由改容器的一方实现。
 
-```sh
-dsh plugin --profile <你的 profile> add dsh-sidebar-footer-stack
+规则只有几何（方向 + gap），不画卡面：
+
+```css
+[class*="footerActions"] {
+  flex-direction: column !important;
+  align-items: stretch;
+  gap: 6px;
+}
+
+[class*="collapsed"] [class*="footerActions"] {
+  align-items: center;
+}
 ```
 
-`dsh-sidebar-footer-stack` 就是为此存在的：把该槽位改成纵向堆叠、给所有条目统一卡片
-外观、并支持拖动换序。它**没有任何 `peerDependencies`**，所以 `0.1.7-rc.1` 起那套安装期
-peer 门禁拦不住它；它的选择器 `[class*="footerActions"]` 在 `0.1.7-rc.2` 与 `0.2.0-rc.2`
-上都能匹配（两者都把容器渲染成 `display:flex`，类名是 `<hash>_footerActions`）。
+- 选择器用类名**子串**：宿主是 CSS Module，哈希前缀随构建而变（`hHd-Xa_` / `n_2Q3W_`），
+  写全名会静默匹配不到。
+- 只写几何：不设 `border` / `background` / `padding` / `box-shadow`。给别的插件的条目
+  画框是布局插件的功能，重复实现会让卡片被套两层框。
+- 与 `dsh-sidebar-footer-stack` **幂等共存**：两者都表达 "column + 6px gap"，同时安装时
+  无论谁的 `!important` 胜出，计算值都是 column；它额外提供的统一卡面与拖动换序会保留，
+  想要那些能力仍应装它（它没有任何 `peerDependencies`，安装期 peer 门禁拦不住）。
+- 对**单条目**没有视觉差异：一行里的单个 `width:100%` 条目与一列里的同一个条目一致。
+  这条规则只在"一个以上注册者"时改变形态——而那正是宿主单行布局已经不成立的场景。
 
-不要在本插件里加 `[class*="footerActions"]{flex-direction:column}`：那会替宿主和别的
-插件决定布局，而且会和 `dsh-sidebar-footer-stack` 的 `!important` 规则叠加。
+`tests/client-styles.spec.ts` 钉住这套规则：方向必须带 `!important`、必须有 gap、折叠态
+居中、选择器必须是 `[class*=` 形式，且 `footerActions` 的规则**不得**出现任何卡面属性。
 
 ## 相关
 
 - [client bundle 不进 web 启动图](./client-bundle-not-in-boot-graph.md) —— 同样表现为"底部动作消失"，但成因是启动图里没有那一行，不是布局。
 - [ADR-0006：客户端 UI 使用宿主设计 token](../decisions/ADR-0006-client-ui-host-tokens.md)。
+- [ADR-0011：侧栏底部槽位的布局归属](../decisions/ADR-0011-footer-slot-layout-ownership.md)。

@@ -28,7 +28,9 @@ DSH（DeepSeek Harness）的外部插件 bundle：把 Workspace 的可写范围�
 
 **已完成并发布：`v0.1.6`**——修复侧栏底部动作与同槽位插件抢位：`sidebar.footer.action` 是共享的 list 槽位，本插件的行样式曾经占满整行且拒绝收缩，把 `dsh-context` 等插件的卡片压成一个图标。详见 [CHANGELOG](./CHANGELOG.md)。
 
-**已完成并发布：`v0.1.7`**——对齐修复：条目恰好一个 42px 控件高，与并排的卡片落在同一条线上（外侧间距归容器管），图标墨线对齐改由按钮内边距实现。想要"上下各一行"请在 profile 里装 `dsh-sidebar-footer-stack`（容器级布局不属于本插件，理由见[故障排查](./docs/troubleshooting/sidebar-footer-slot-collision.md)）。详见 [CHANGELOG](./CHANGELOG.md)。
+**已完成并发布：`v0.1.7`**——对齐修复：条目恰好一个 42px 控件高，与并排的卡片落在同一条线上（外侧间距归容器管），图标墨线对齐改由按钮内边距实现。详见 [CHANGELOG](./CHANGELOG.md)。
+
+**已完成并发布：`v0.1.8`**——**侧栏底部槽位改为纵向堆叠**（[ADR-0011](./docs/decisions/ADR-0011-footer-slot-layout-ownership.md)）：宿主把该槽位渲染成一行、`slot` 系统不允许注册者改容器布局，所以本插件自己声明 `[class*="footerActions"]{flex-direction:column !important;gap:6px}`（只写几何、不画卡面，与 `dsh-sidebar-footer-stack` 幂等共存）。多个插件卡片从此上下各占一行。详见 [CHANGELOG](./CHANGELOG.md)。
 
 进度、编号与发布状态的唯一真源是[路线图 §进度总账](./docs/plans/active/2026-09-12-multi-root-workspace.md#进度总账)（M1–M4 是 MVP 里程碑编号，H1–H4 是 `v0.1.1` 批次编号，其中 H1 即 M4）；逐项证据见各[已完成计划](./docs/plans/README.md)，每个版本的用户可见变更见 [CHANGELOG](./CHANGELOG.md)。
 
@@ -94,8 +96,8 @@ dsh plugin --profile web add @dsh-electron/dsh-plugin-multi-root-workspace
 ```sh
 pnpm pack @dsh-electron/dsh-plugin-multi-root-workspace
 # 或从 GitHub Release 资产下载，例如：
-# https://github.com/cherrchen/dsh-plugin-multi-root-workspace/releases/download/v0.1.7/dsh-electron-dsh-plugin-multi-root-workspace-0.1.7.tgz
-dsh plugin --profile web add ./dsh-electron-dsh-plugin-multi-root-workspace-0.1.7.tgz
+# https://github.com/cherrchen/dsh-plugin-multi-root-workspace/releases/download/v0.1.8/dsh-electron-dsh-plugin-multi-root-workspace-0.1.8.tgz
+dsh plugin --profile web add ./dsh-electron-dsh-plugin-multi-root-workspace-0.1.8.tgz
 ```
 
 同样是预构建产物（不需要编译本插件本身），适合内网或离线环境交付；首次 `add` 同样要回答那一次 `allowBuilds`。
@@ -114,10 +116,10 @@ allowBuilds:
   koffi: true
 ```
 
-然后重新执行 `add` 即可。建议锁定 tag（如 `#v0.1.7`），让后续推送无法悄悄改变实际运行的内容：
+然后重新执行 `add` 即可。建议锁定 tag（如 `#v0.1.8`），让后续推送无法悄悄改变实际运行的内容：
 
 ```sh
-dsh plugin --profile web add github:cherrchen/dsh-plugin-multi-root-workspace#v0.1.7
+dsh plugin --profile web add github:cherrchen/dsh-plugin-multi-root-workspace#v0.1.8
 ```
 
 ### 从本地源码安装（开发调试）

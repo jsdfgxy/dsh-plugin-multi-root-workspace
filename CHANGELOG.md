@@ -10,13 +10,26 @@ English: [CHANGELOG.en.md](./CHANGELOG.en.md)
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-09-30
+
+### Added
+
+- **侧栏底部槽位由本插件纵向堆叠**（[ADR-0011](./docs/decisions/ADR-0011-footer-slot-layout-ownership.md)）：宿主把 `sidebar.footer.action` 的容器渲染成 `display:flex` 的一行，`slot` 系统不允许注册者改变容器的布局，容器又没有 `flex-wrap`（单个条目无法换行）——所以"上下各一行"只能由改容器的一方实现。本插件现在自己声明：
+
+  ```css
+  [class*="footerActions"] { flex-direction: column !important; align-items: stretch; gap: 6px }
+  [class*="collapsed"] [class*="footerActions"] { align-items: center }
+  ```
+
+  四条边界：选择器用类名**子串**（宿主是 CSS Module，哈希前缀随构建而变，写全名会静默匹配不到）；**只写几何**，不设 `border` / `background` / `padding` / `box-shadow`（给别的插件的条目画框是布局插件的功能，重复实现会让卡片被套两层框）；`!important` 只加在方向与 gap 上；与 `dsh-sidebar-footer-stack` **幂等共存**（两者都表达 column + 6px gap，同时安装时计算值一致，它额外提供的统一卡面与拖动换序会保留）。对**单条目**没有视觉差异，所以这条规则只影响"一个以上注册者"的场景——也就是宿主单行布局已经不成立的场景。
+
 ## [0.1.7] - 2026-09-30
 
 ### Fixed
 
 - **底部两张卡片上下错开 4px**：上一条修复去掉了 2px 侧向外溢，但行上还留着从宿主 `.triggerRow` 抄来的 `margin: 4px 0`。在共享槽位里这会让本条目高 42 + 8 = 50px，而邻居（`dsh-context`）是 42px，两张卡因此不在一条线上；纵向堆叠时还会在布局插件的 `gap` 之外再加 4px。现在行的外边距为 0，条目恰好是一个 42px 控件——**外侧间距归容器管**（宿主 settings 行自带 4px 上边距，独占时不会贴住）。契约测试同步收紧：行不得有正的纵向 margin，且必须恰好一个控件高。
 - **图标墨线对齐改在内部实现**：原先靠 2px 外溢对齐下方齿轮，去掉后图标偏 2px。现在把按钮左内边距从宿主的 `8px` 改为 `6px`，图标左缘仍落在容器内容边 +6px，但完全收在自己的盒子里，不再压到邻居。
-- **想要"上下各一行"请在 profile 里装 `dsh-sidebar-footer-stack`**：宿主把 `sidebar.footer.action` 渲染成一行 flex，`slot` 系统不允许注册者改变容器布局，所以纵向堆叠是**容器级**决定，不属于本插件。该插件无 `peerDependencies`，安装期 peer 门禁拦不住。理由与诊断见[故障排查](./docs/troubleshooting/sidebar-footer-slot-collision.md)。
+- **想要"上下各一行"请在 profile 里装 `dsh-sidebar-footer-stack`**：宿主把 `sidebar.footer.action` 渲染成一行 flex，`slot` 系统不允许注册者改变容器布局，所以纵向堆叠是**容器级**决定，不属于本插件。该插件无 `peerDependencies`，安装期 peer 门禁拦不住。理由与诊断见[故障排查](./docs/troubleshooting/sidebar-footer-slot-collision.md)。（**`v0.1.8` 起改为由本插件自己实现**，见上一条。）
 
 ## [0.1.6] - 2026-09-30
 
@@ -122,7 +135,8 @@ English: [CHANGELOG.en.md](./CHANGELOG.en.md)
 
 - 发布前外部评审提出的 8 项发现（其中 3 项发布阻断）全部修复，每项各带一个回归测试：登记目录被替换为符号链接后授权转移（引入 `recordedPath`，**重新解析路径不等于重新授权**）、并发修改注册表丢写或复活已撤销的授权（每个主根的变更串行）、刷新不重新检查目录、手输路径被目录选择器覆盖、`reveal` 的应答契约与失败码、重复 id 未校验、主根未纳入嵌套校验、CI 先测后构建。
 
-[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.4...v0.1.5
