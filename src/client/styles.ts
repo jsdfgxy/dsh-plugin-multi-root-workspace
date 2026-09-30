@@ -19,14 +19,18 @@ export const STYLES = /* css */ `
  * plugin that registers there — dsh-context's overview card, among others.
  *
  * It therefore has to be a well-behaved item: shrinkable, full width only
- * WITHIN its own share, and with no negative margin. The previous recipe
- * (flex: none + width: calc(100% + 4px) + a negative side margin) claimed the
- * whole row and squeezed every sibling to its bare icon — the collision
- * reported against dsh-context. The 2px side overhang is deliberately gone:
- * it exists to put this row's icon on the Settings gear's ink line while this
- * is the ONLY footer entry, and it is exactly what makes two cards overlap
- * once a neighbour exists. A cramped row ellipsizes the label instead of
- * occluding the next plugin. */
+ * WITHIN its own share, no negative margin, and exactly ONE control tall.
+ * The previous recipe (flex: none + width: calc(100% + 4px) + a negative side
+ * margin) claimed the whole row and squeezed every sibling to its bare icon —
+ * the collision reported against dsh-context. That recipe was copied from the
+ * host's own settings row (ui-settings-general's .triggerRow), which can afford
+ * it because it is the only child of its slot; a shared list slot cannot.
+ *
+ * The vertical margin is gone for the same reason: it made this item 50px tall
+ * beside a 42px neighbour, so the two footer cards sat 4px out of line, and it
+ * would add 4px on top of whatever gap a stacking layout sets. Outer spacing is
+ * the container's job — the host's settings row below already carries its own
+ * 4px top margin, so the solo case stays separated without ours. */
 .mrfw-triggerRow {
   box-sizing: border-box;
   flex: 0 1 auto;
@@ -35,12 +39,14 @@ export const STYLES = /* css */ `
   align-items: center;
   gap: 8px;
   width: 100%;
-  margin: 4px 0;
+  margin: 0;
 }
 
 .mrfw-triggerRow.mrfw-railRow {
   flex: none;
   width: 36px;
+  /* The host's own rail row sets this exact margin; the rail is a lone 36px
+   * button the shell centres, so it keeps that geometry. */
   margin: 8px 0 10px;
 }
 
@@ -54,7 +60,10 @@ export const STYLES = /* css */ `
   width: auto;
   height: 42px;
   margin: 0;
-  padding: 0 10px 0 8px;
+  /* 6px, not the host trigger's 8px: without the 2px side overhang this is what
+   * puts the icon's ink line where the Settings gear's is. Padding keeps the
+   * alignment INSIDE our own share instead of bleeding 2px onto a neighbour. */
+  padding: 0 10px 0 6px;
   border: none;
   border-radius: 12px;
   background: transparent;

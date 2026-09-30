@@ -57,17 +57,30 @@ describe('the sidebar footer row as a shared list-slot item', () => {
     expect(row.get('min-width'), 'without min-width: 0 the item never shrinks below its content').toBe('0')
   })
 
-  it('never overhangs its neighbours', () => {
+  it('never overhangs its neighbours and adds no spacing of its own', () => {
     const row = declarationsOf('.mrfw-triggerRow')
-    const margin = row.get('margin') ?? ''
-    // The 2px side overhang existed to align this icon with the Settings gear
-    // while this was the only footer entry; it is what makes two cards overlap.
-    for (const side of margin.split(/\s+/u)) {
-      if (side.startsWith('-')) throw new Error(`a negative margin (${side}) makes this row overlap the next plugin's card`)
+    // A negative side margin is the 2px overhang that made two cards overlap;
+    // a non-zero VERTICAL margin makes this item taller than a 42px neighbour
+    // (the two cards then sit out of line) and pads any gap a stacking layout
+    // sets. Outer spacing belongs to the container: the host's settings row
+    // below already carries its own top margin.
+    const [top, right, bottom, left] = (row.get('margin') ?? '').split(/\s+/u)
+    for (const side of [top, right, bottom, left]) {
+      if (side !== undefined && side !== '0') {
+        throw new Error(`margin ${side} on the shared footer row: negative margins overlap the neighbour, and positive ones misalign a 42px sibling`)
+      }
     }
     const width = row.get('width') ?? ''
     expect(width, 'a width wider than the share overflows onto the neighbour').not.toMatch(/calc\([^)]*\d+%/u)
     expect(row.get('box-sizing')).toBe('border-box')
+  })
+
+  it('is exactly one control tall, so it lines up with a sibling card', () => {
+    const row = declarationsOf('.mrfw-triggerRow')
+    expect(row.get('margin')).toBe('0')
+    // The host's own footer controls are 42px; matching that height is what
+    // keeps the icons of two side-by-side entries on one line.
+    expect(declarationsOf('.mrfw-trigger').get('height')).toBe('42px')
   })
 
   it('ellipsizes its label rather than clipping it mid-glyph', () => {
