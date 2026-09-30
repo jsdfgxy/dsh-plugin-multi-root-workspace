@@ -8,11 +8,51 @@
  * this UI sits beside — the sidebar footer trigger, the Modal primitive, and
  * the capsule Button (ADR-0006 records the decision).
  *
+ * Every class this sheet defines is `mrfw-`-prefixed to stay collision-free.
+ * The ONE exception is the first section below: it targets the host's own
+ * `footerActions` container, because `sidebar.footer.action` is a shared LIST
+ * slot whose host rendering cannot be reached through the slot API. ADR-0011
+ * records why that override exists, what it may and may not declare, and how
+ * it coexists with the community layout plugin that does the same thing.
+ *
  * @module @dsh-electron/dsh-plugin-multi-root-workspace/client/styles
  */
 
-/** The stylesheet text; every class is prefixed `mrfw-` to stay collision-free. */
+/** The stylesheet text; every class is prefixed `mrfw-` except ADR-0011's container rule. */
 export const STYLES = /* css */ `
+/* ---- the shared footer slot's LAYOUT (ADR-0011) --------------------------
+ *
+ * The only host-class rule in this sheet, and the only rule that is not about
+ * this plugin's own markup. sidebar.footer.action is a LIST slot: the shell
+ * renders its container as one flex ROW, the slot API lets a registrant add
+ * entries but NOT change the container's kind or layout, and a container
+ * without flex-wrap cannot let a single entry wrap itself onto a second line.
+ * So with two or more registrants the host row gives each entry a share of one
+ * line and the cards squeeze each other.
+ *
+ * This sheet therefore stacks the entries, the same way the community layout
+ * plugin dsh-sidebar-footer-stack does, so the two are idempotent: both
+ * express "column with a 6px gap". The selector matches on a class-name
+ * SUBSTRING on purpose — the host is a CSS Module, and its hash prefix differs
+ * between builds (hHd-Xa_footerActions, n_2Q3W_footerActions, …), so a full
+ * class name would silently match nothing.
+ *
+ * Scope, deliberately: GEOMETRY ONLY. This sheet never draws chrome on another
+ * plugin's entry — no border, background, padding or shadow — because that is
+ * the layout plugin's feature and would double-frame its cards. */
+[class*="footerActions"] {
+  flex-direction: column !important;
+  align-items: stretch;
+  gap: 6px;
+}
+
+/* Collapsed rail: the shell centres a 36px button per entry, so the column has
+ * to centre on the cross axis instead of stretching. Two selectors beat the
+ * rule above, so the rail form holds whichever order the host loads in. */
+[class*="collapsed"] [class*="footerActions"] {
+  align-items: center;
+}
+
 /* Sidebar footer row. sidebar.footer.action is a LIST slot in a host-owned
  * flex row (SidebarRoot's .footerActions, with the slot's display:contents
  * anchor between them), so this element is a flex ITEM shared with every other

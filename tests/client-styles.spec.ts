@@ -1,16 +1,16 @@
 /**
  * The one stylesheet rule that is a CONTRACT with other plugins, not a taste.
  *
- * `sidebar.footer.action` is a `kind: 'list'` slot rendered inside the shell's
- * `.footerActions` flex ROW, with the slot's `display: contents` anchor between
- * them — so every registrant's root element is a sibling flex item. Our row
- * therefore has to remain a well-behaved item: shrinkable, full width only
- * within its own share, and without a negative horizontal margin.
+ * `sidebar.footer.action` is a `kind: 'list'` slot rendered by the shell as a
+ * flex ROW with the slot's `display: contents` anchor between them — so every
+ * registrant's root element is a sibling flex item, and this sheet also owns
+ * the container's direction (ADR-0011).
  *
- * This was a real collision, not a hypothetical: `flex: none` plus
+ * Both halves were real defects, not hypotheticals: `flex: none` plus
  * `width: calc(100% + 4px)` plus `margin: … -2px` made this entry claim the
- * whole row and squeeze `dsh-context`'s overview card down to its bare icon.
- * The assertions below are the ones that would have caught it.
+ * whole row and squeeze `dsh-context`'s overview card down to its bare icon,
+ * and the leftover `margin: 4px 0` then left the two cards 4px out of line.
+ * The assertions below are the ones that would have caught both.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -24,6 +24,38 @@ import { STYLES } from '../src/client/styles.ts'
  * prose and the rule it belongs to never checked.
  */
 const SHEET = STYLES.replace(/\/\*[\s\S]*?\*\//gu, '')
+
+/** One parsed top-level rule. */
+interface ParsedRule {
+  /** The selector text, trimmed. */
+  readonly selector: string
+  /** Its declarations, keyed by property. */
+  readonly declarations: ReadonlyMap<string, string>
+}
+
+/**
+ * Read every top-level rule whose selector mentions a fragment.
+ *
+ * `[^{}]+` between the previous rule's `}` and the next `{` is enough here
+ * because this sheet is flat — no at-rules, no nesting.
+ * @param fragment - the selector text to look for.
+ * @returns the matching rules, in sheet order.
+ */
+function rulesMentioning(fragment: string): ParsedRule[] {
+  const rules: ParsedRule[] = []
+  for (const match of SHEET.matchAll(/([^{}]+)\{([^}]*)\}/gu)) {
+    const selector = (match[1] as string).trim()
+    if (!selector.includes(fragment)) continue
+    const declarations = new Map<string, string>()
+    for (const declaration of (match[2] as string).split(';')) {
+      const separator = declaration.indexOf(':')
+      if (separator < 0) continue
+      declarations.set(declaration.slice(0, separator).trim(), declaration.slice(separator + 1).trim())
+    }
+    rules.push({ selector, declarations })
+  }
+  return rules
+}
 
 /**
  * Read the declarations of one top-level rule out of the stylesheet.
@@ -96,5 +128,45 @@ describe('the sidebar footer row as a shared list-slot item', () => {
     // inherit the shrinkable row behaviour above.
     expect(rail.get('flex')).toBe('none')
     expect(rail.get('width')).toBe('36px')
+  })
+})
+
+describe('the shared footer container takeover (ADR-0011)', () => {
+  it('stacks the entries, because the host row cannot let one entry wrap', () => {
+    const [container] = rulesMentioning('footerActions')
+    expect(container?.selector).toBe('[class*="footerActions"]')
+    // Without `!important` a later host or plugin rule silently wins and the
+    // cards go back to sharing one squeezed line.
+    expect(container?.declarations.get('flex-direction')).toBe('column !important')
+    expect(container?.declarations.get('gap'), 'a gap is what keeps stacked cards from touching').toBe('6px')
+  })
+
+  it('matches on a class-name substring, never a hashed full name', () => {
+    const rules = rulesMentioning('footerActions')
+    expect(rules.length, 'the takeover must be present at all').toBeGreaterThanOrEqual(2)
+    for (const { selector } of rules) {
+      // The host's CSS-module hash differs per build; a full class name
+      // (`hHd-Xa_footerActions`) matches nothing in the other build.
+      expect(selector, `"${selector}" must use an attribute substring selector`).toContain('[class*=')
+    }
+  })
+
+  it('centres the collapsed rail instead of stretching it', () => {
+    const collapsed = rulesMentioning('footerActions').find(rule => rule.selector.includes('collapsed'))
+    expect(collapsed?.declarations.get('align-items')).toBe('center')
+  })
+
+  it('declares geometry only, never chrome on another plugin\'s entry', () => {
+    // Drawing a frame here would double-frame every card the community layout
+    // plugin already boxes; its own rule set is where chrome belongs.
+    const chrome = ['border', 'border-top', 'border-radius', 'background', 'box-shadow', 'padding', 'margin']
+    for (const { selector, declarations } of rulesMentioning('footerActions')) {
+      for (const property of chrome) {
+        expect(
+          declarations.has(property),
+          `${selector} declares ${property}: the shared container is geometry-only (ADR-0011)`,
+        ).toBe(false)
+      }
+    }
   })
 })
