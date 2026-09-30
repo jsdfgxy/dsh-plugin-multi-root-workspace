@@ -1,6 +1,6 @@
 # 开发路径文档：Multi-root Workspace（不改上游）
 
-> 状态：active（**进度总账 + 里程碑概览**）。MVP-v0.1.0（M1/M2/M3）已实施并以 `v0.1.0` 发版（2026-09-13）；v0.1.1 硬化批次（H1–H4）已实施、全绿并随 `v0.1.1` 发版（2026-09-16）；v0.1.2 支持矩阵提升（`0.1.6-alpha.2`、`0.1.7-alpha.1`）已实施并随 `v0.1.2` 发版（2026-09-22）；v0.1.3 支持矩阵提升（`0.1.7-alpha.2`、`0.1.7-rc.1`）已实施并随 `v0.1.3` 发版（2026-09-24）；v0.1.4 支持矩阵提升（`0.1.7-rc.2`）已实施并随 `v0.1.4` 发版（2026-09-25）；第二期（B 系列）范围见[需求文档 §4/§7](../../requirements/multi-root-workspace.md)。
+> 状态：active（**进度总账 + 里程碑概览**）。MVP-v0.1.0（M1/M2/M3）已实施并以 `v0.1.0` 发版（2026-09-13）；v0.1.1 硬化批次（H1–H4）已实施、全绿并随 `v0.1.1` 发版（2026-09-16）；v0.1.2 支持矩阵提升（`0.1.6-alpha.2`、`0.1.7-alpha.1`）已实施并随 `v0.1.2` 发版（2026-09-22）；v0.1.3 支持矩阵提升（`0.1.7-alpha.2`、`0.1.7-rc.1`）已实施并随 `v0.1.3` 发版（2026-09-24）；v0.1.4 支持矩阵提升（`0.1.7-rc.2`）已实施并随 `v0.1.4` 发版（2026-09-25）；v0.1.5 支持矩阵提升（`0.2.0-rc.2`）已实施并随 `v0.1.5` 发版（2026-09-30）；第二期（B 系列）范围见[需求文档 §4/§7](../../requirements/multi-root-workspace.md)。
 > 设计依据：[multi-root-workspace.md](../../architecture/multi-root-workspace.md)；验收标准见 [multi-root-workspace.md](../../requirements/multi-root-workspace.md) §5。
 > 产物是本仓库（`dsh-plugin-multi-root-workspace`，包 `@dsh-electron/dsh-plugin-multi-root-workspace`），经 `dsh plugin --profile <name> add <path|git>` 安装；对上游仓库（deepseek-harness）零改动。
 > 插件仓库自建门禁（上游 `verify-cordis-config` 等仓库 gates 不适用）：lint + typecheck + vitest 全绿 + patch 快照测试。
@@ -33,6 +33,7 @@
 | v0.1.2 | compat | DSH 支持矩阵扩展至 `0.1.6-alpha.2` 与 `0.1.7-alpha.1`；`0.1.6-alpha.2` 面板 Session 目录 `retainedBy.mainView` 探针 | — | [0009](../../decisions/ADR-0009-dsh-compat-contract.md) | `318ff52`…`6e68a0b` | `v0.1.2` |
 | v0.1.3 | compat | DSH 支持矩阵扩展至 `0.1.7-alpha.2` 与 `0.1.7-rc.1`；形状未变，`rc.1` 安装期 peer 门禁要求精确 peer | — | [0009](../../decisions/ADR-0009-dsh-compat-contract.md) | `10381fc` | `v0.1.3` |
 | v0.1.4 | compat | DSH 支持矩阵扩展至 `0.1.7-rc.2`；相对 `rc.1` 形状未变，无新适配分支，cordis 仍是 `~4.0.4` | — | [0009](../../decisions/ADR-0009-dsh-compat-contract.md) | `f2a8f75` | `v0.1.4` |
+| v0.1.5 | compat | DSH 支持矩阵扩展至 `0.2.0-rc.2`（0.2 系列首个受支持版本）；相对 `0.1.7-rc.2` 形状未变，无新适配分支；同系列 `0.2.0-rc.1` 未实测，不在清单上 | — | [0009](../../decisions/ADR-0009-dsh-compat-contract.md) | `06a6ddc` | `v0.1.5` |
 | 第二期 | B 系列 | Windows 内核级多根、per-root 权限、`workspace-files` 多根、LSP 路由等 | 见[需求文档 §4/§7](../../requirements/multi-root-workspace.md) | — | — | 未开始 |
 
 ## 总体策略
@@ -199,6 +200,32 @@ MVP 三个里程碑加一个硬化批次，每一项都独立可验证，且**�
 | 本地门禁 | `compat:check` + `lint` + `typecheck` + `build` + `test`（343 passed / 3 skipped）+ `smoke:compose` 40/40 + `smoke:behavior` 99/99 + `smoke:journey` 55/55 + `docs:check` 全绿（2026-09-25，macOS） |
 
 **版本号与 tag 由发版提交完成**（`pnpm release patch --tag` → `chore(release): v0.1.4` + annotated tag `v0.1.4`）；推送 tag（进而触发 npm 发布与 GitHub Release）是人工动作。
+
+## v0.1.5 — 支持矩阵提升（已实施，已发版准备完成）
+
+> 用户可见变更见 [`CHANGELOG.md`](../../../CHANGELOG.md) 的 `0.1.5` 条目；设计取舍仍见 [ADR-0009](../../decisions/ADR-0009-dsh-compat-contract.md)。
+
+### 支持矩阵提升（随 `v0.1.5` 发版，2026-09-30）：`0.2.0-rc.2`
+
+`0.2.0-rc.2` 按 [ADR-0009](../../decisions/ADR-0009-dsh-compat-contract.md) 写入 allowlist（`peerDependencies` 同步为八项精确或）。开发 pin 与 lockfile 仍是 `0.1.5-rc.2`（cordis 仍是 `4.0.2`）。相对 `0.1.7-rc.2`，适配层没有新分支：`confine` 仍异步、renderer 仍是 `renderAgentInstructions`、`SESSION_FORMAT_VERSION` 仍是 `4`、工具失败位仍在消息上、图标仍是 Regular 名、`retainedBy` 仍在目录行上。安装期 peer 门禁与 `rc.1` 相同。探测时 cordis 钉 `4.0.4`。
+
+差异面另做了一次逐包核对（29 个 `@deepseek-ai/*` 包 × 两个版本：`lib/types/**` 归一化 diff、除 manifest/README 外的整树 sha256、导出名抽取、`lib/*.js` 正文 diff）：**17 个包逐字节相同**，其余 12 个包的差异都不碰本插件的探针。其中几处"差一点就咬到"的变更（`dsh-session` 收紧 `openTurnClosers` 配对、`dsh-client-ui-workspace.forkSession` 签名改返回 `SessionId`、primitives 的 `Input` / `TextShimmer` 重塑、Typert face model 给 `MessageSourceMap` 加 `user-question-reply`、cordis `Fiber.update` 返回值收窄为 `void`、`dsh-base` 新增 `otel` loader row）已记入 [Agent Note §4](../../../.agent/note/dsh-compat-contract.md)，说明为什么它们不需要适配分支。
+
+**同系列的 `0.2.0-rc.1` 不纳入**：它同样是 0.2.0 的预发布，但没有实测过，按精确 allowlist 契约不列入；支持清单从此不再是连续区间。
+
+| 项 | 结果 |
+|---|---|
+| `0.2.0-rc.2` 纳入后 enforce（cordis `4.0.4`，peer 已含该版本） | lint / typecheck / build / kernel:probe 通过；342 passed / 4 skipped，compose 40/40，behavior 91/91（另 4 条真实内核方言断言跳过），journey 52/52（另 2 条真实内核断言跳过）。macOS，seatbelt 在本机被沙箱拒绝（`sandbox_apply: Operation not permitted`），bwrap / landlock 不可用 |
+| 基线回归（pin 回到 `0.1.5-rc.2`，cordis `4.0.2`，lockfile 保持基线，enforce） | `compat:check` 与 `docs:check` 通过；342 passed / 4 skipped，compose 40/40，behavior 91/91（4 条跳过），journey 52/52（2 条跳过） |
+
+### 发版准备（2026-09-30）
+
+| 项 | 结果 |
+|---|---|
+| 发布状态与 CHANGELOG | 路线图、README（中英）的版本句与支持清单对齐 `v0.1.5`；[`CHANGELOG.md`](../../../CHANGELOG.md) / [`CHANGELOG.en.md`](../../../CHANGELOG.en.md) 新增 `0.1.5` 条目 |
+| 本地门禁 | `compat:check` + `lint` + `typecheck` + `build` + `test`（342 passed / 4 skipped）+ `smoke:compose` 40/40 + `smoke:behavior` 91/91 + `smoke:journey` 52/52 + `docs:check` 全绿（2026-09-30，macOS） |
+
+**版本号与 tag 由发版提交完成**（`pnpm release patch --tag` → `chore(release): v0.1.5` + annotated tag `v0.1.5`）；推送 tag（进而触发 npm 发布与 GitHub Release）是人工动作。
 
 ## 里程碑与仓库状态对照
 

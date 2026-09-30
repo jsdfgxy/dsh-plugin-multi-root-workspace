@@ -13,14 +13,14 @@ src/compat/dsh-version.ts  →  SUPPORTED_DSH_RELEASES
 It is an array of **exact versions**, not a semver range. Currently:
 
 ```ts
-export const SUPPORTED_DSH_RELEASES = ['0.1.5-rc.2', '0.1.6-alpha.1', '0.1.6-alpha.2', '0.1.7-alpha.1', '0.1.7-alpha.2', '0.1.7-rc.1', '0.1.7-rc.2'] as const
+export const SUPPORTED_DSH_RELEASES = ['0.1.5-rc.2', '0.1.6-alpha.1', '0.1.6-alpha.2', '0.1.7-alpha.1', '0.1.7-alpha.2', '0.1.7-rc.1', '0.1.7-rc.2', '0.2.0-rc.2'] as const
 ```
 
 When you change it, these four must agree or `pnpm compat:check` fails:
 
 ```text
 src/compat/dsh-version.ts   SUPPORTED_DSH_RELEASES   the allowlist
-package.json                peerDependencies         "0.1.5-rc.2 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2"
+package.json                peerDependencies         "0.1.5-rc.2 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.2"
 package.json                devDependencies          one entry of the allowlist (currently 0.1.5-rc.2)
 node_modules                resolved versions        one entry of the allowlist
 ```
@@ -60,6 +60,7 @@ Otherwise `ctx.get('fs')` / `ctx.get('sandbox')` are `undefined` and you will se
 0.1.7-alpha.2  same shape as 0.1.7-alpha.1 (measured 2026-09-24)
 0.1.7-rc.1     same shape as 0.1.7-alpha.1 (measured 2026-09-24). This release adds an install-time peer gate; see the end of §4
 0.1.7-rc.2     same shape as 0.1.7-rc.1 (measured 2026-09-25 against the tags). cordis stays `~4.0.4`
+0.2.0-rc.2     same shape as 0.1.7-rc.2 (measured 2026-09-30 against the installed trees). First release of the 0.2 series, cordis stays `~4.0.4`; the sibling `0.2.0-rc.1` was never measured and is not on the allowlist
 ```
 
 **Do not** hand-write a signature in `src/sandbox.ts` that suits one release. Go through `widenConfined()` in `src/compat/sandbox-confine.ts`, which **preserves the shape**: a synchronous base result stays synchronous, a promise stays a promise.
@@ -81,7 +82,7 @@ Business code contains no version checks. The adapters today:
 | --- | --- |
 | `src/compat/sandbox-confine.ts` | `confine`'s sync/async shape and arity |
 | `src/compat/agent-instructions.ts` | the renderer rename: `renderWorkspaceContext` (0.1.5) → `renderAgentInstructions` (0.1.6; unchanged on 0.1.7) |
-| `src/compat/client-session.ts` | current session: `list.current` (0.1.5 / 0.1.6-alpha.1) → catalog row `retainedBy.mainView > 0` (0.1.6-alpha.2 and 0.1.7-alpha.1 through 0.1.7-rc.2; 0.1.7 moved other catalog fields, not this predicate) |
+| `src/compat/client-session.ts` | current session: `list.current` (0.1.5 / 0.1.6-alpha.1) → catalog row `retainedBy.mainView > 0` (0.1.6-alpha.2 and 0.1.7-alpha.1 through 0.1.7-rc.2, plus 0.2.0-rc.2; 0.1.7 moved other catalog fields, not this predicate) |
 | `src/compat/llm-message.ts` | through session format 3, emit `{ kind: 'plugin', plugin, form: 'instructions' }`; format 4 (`SESSION_FORMAT_VERSION` on `0.1.7`) rejects `kind: 'plugin'` and the adapter emits `{ kind: 'multi-root-workspace', plugin, form: 'instructions' }`. Probe the format constant the session package exports, **not** the renderer name — 0.1.6 already renamed the renderer and still accepts `plugin`. Do not use `agent-instructions`: upstream treats that kind's `changes` array as its own reconciliation authority |
 | `src/compat/tool-result.ts` | the failure bit is `content[0].isError` on 0.1.5/0.1.6 and `isError` on the message itself on 0.1.7. `event.data.error` still exists on both |
 | `src/compat/client-icons.ts` | panel icons: pixel names on 0.1.5/0.1.6 (`IconFolderClose16`), weight names on 0.1.7. Upstream UI uses Regular, not Medium. Prefer the pixel name, then Regular |
@@ -90,9 +91,18 @@ Business code contains no version checks. The adapters today:
 
 Always probe **structurally** (is the value a thenable, which export name exists, does the snapshot carry `current`) rather than comparing version strings. Upstream is pre-stable and reshapes things within a release; a structural probe copes with that, a version comparison does not.
 
-`0.1.7-alpha.2`, `0.1.7-rc.1`, and `0.1.7-rc.2` keep every shape in the table above relative to `0.1.7-alpha.1` (measured 2026-09-24 against `alpha.1` / `alpha.2` / `rc.1`, and 2026-09-25 against `rc.1` → `rc.2`). `rc.1` adds an **install-time** gate that does not live in `src/compat/`: `dsh plugin add` and `loadProfile` run `semver.satisfies(runtime, peerRange, { includePrerelease: true })` on every `@deepseek-ai/dsh*` peer, and refuse the install or skip the bundle when it fails. Promoting a `0.1.7-rc.1`-or-later release therefore has to widen `peerDependencies` in the same change, or the smoke's `dsh plugin add` fails before this plugin's runtime gate runs. `DSH_MULTI_ROOT_COMPAT=warn` does not relax that gate.
+`0.1.7-alpha.2`, `0.1.7-rc.1`, and `0.1.7-rc.2` keep every shape in the table above relative to `0.1.7-alpha.1` (measured 2026-09-24 against `alpha.1` / `alpha.2` / `rc.1`, and 2026-09-25 against `rc.1` → `rc.2`). `0.2.0-rc.2` keeps them too, relative to `0.1.7-rc.2` (measured 2026-09-30 against the installed `0.1.7-rc.2` and `0.2.0-rc.2` trees): `confine` is still async, the renderer is still `renderAgentInstructions`, `SESSION_FORMAT_VERSION` is still `4`, the tool-failure bit is still on the message, the icons still use Regular names, and `retainedBy` is still on the catalog row. **The sibling `0.2.0-rc.1` was never measured, so it is not on the allowlist — the support list is not guaranteed to be contiguous, so never extrapolate from "same series".** `rc.1` adds an **install-time** gate that does not live in `src/compat/`: `dsh plugin add` and `loadProfile` run `semver.satisfies(runtime, peerRange, { includePrerelease: true })` on every `@deepseek-ai/dsh*` peer, and refuse the install or skip the bundle when it fails. Promoting a `0.1.7-rc.1`-or-later release therefore has to widen `peerDependencies` in the same change, or the smoke's `dsh plugin add` fails before this plugin's runtime gate runs. `DSH_MULTI_ROOT_COMPAT=warn` does not relax that gate.
 
 **This is a quiet trap**: `0.1.6-alpha.2`'s host matrix (`confine`, the instruction renderer, the journey Messages endpoint) matches alpha.1, so it was promoted with "no adapter change". The client Session Controller still dropped `SessionListState.current` in `6830e1460d` and moved navigation onto the main view's `retain(..., { source: 'mainView' })`. A panel that still reads `list.current` then shows "No active session" for an open conversation and **does not call the host**.
+
+**Near misses in `0.2.0-rc.2`** (measured 2026-09-30 against `0.1.7-rc.2`: 17 of 29 `@deepseek-ai/*` packages are byte-identical and none of the other 12 touches this bundle's probes; these are the places that *almost* bit, recorded so the boundary is visible next time):
+
+- `@deepseek-ai/dsh-session` tightened its own `openTurnClosers`: a `tool/result` clears a pending call only when `surfaceOp === 'append'` **and** `turn` / `step` match (previously any matching `callId`), and `ToolCallRecovery` is new. This plugin's `src/instructions.ts` **does its own pairing** (`tool/call` records the `callId`; `tool/result` claims it through `event.data.message.source.callId`), so it is unaffected — and it must not be rewritten to lean on upstream's turn-closer semantics.
+- `@deepseek-ai/dsh-client-ui-workspace` changed `forkSession` to return `Promise<SessionId>` with an added `onCreated` callback, and its locale map gained a key. The panel only reads `pickDirectory()` through `readService`, and that signature is `Promise<string | null>` on both releases — do **not** start implementing the whole `UiWorkspace` port, which would drag these unrelated changes in.
+- `@deepseek-ai/dsh-client-ui-primitives` reshaped `Input` (now a `ForwardRefExoticComponent`) and `TextShimmer` (`active` became optional), and added exports such as `MenuGroup`. The panel imports only `Menu`, so nothing changed for it.
+- The **generated Typert face models** of `@deepseek-ai/dsh-llm` / `dsh-commands` (`lib/typert.host.js`, which is not part of the published `.d.ts`) add `'user-question-reply'` to `MessageSourceMap`. **Never** write an exhaustive `switch` over `source.kind`, and never check a face-model snapshot into the repository.
+- cordis `4.0.2` → `4.0.4` narrows `Fiber.update`'s return type from `void | Promise<void>` to `void` (same for the `internal/update` event). This plugin does not call it; a caller can no longer `await` its result.
+- `@deepseek-ai/dsh-base`'s `cordis.patch.yml` gained an `otel` loader row (additive). This plugin's patch does not claim that row id.
 
 Probe order: a non-empty `current` wins (the old shape), otherwise the first catalog row whose `retainedBy.mainView` is a positive number. A populated catalog with nobody retained returns `undefined` — **never** fall back to `ids[0]`, which would act on a session the operator is not looking at. `getSnapshot` must be invoked as a method; extracting the function drops the store's `this`.
 
@@ -132,7 +142,7 @@ pnpm install --frozen-lockfile                                     # bring node_
 
 Installing a candidate **requires** `--config.minimumReleaseAge=0`. Without it pnpm's release-age gate makes it append two hundred-odd lines of the fresh tree into `minimumReleaseAgeExclude` in `pnpm-workspace.yaml` — which a throwaway probe has no business leaving behind.
 
-`0.1.7-alpha.1`'s `dsh` depends on cordis `^4.0.3`; `0.1.7-alpha.2`, `0.1.7-rc.1`, and `0.1.7-rc.2` depend on `~4.0.4`. `upgrade-dsh.mjs` repoints the `@deepseek-ai/cordis` dev pin and the cordis release-age line in `pnpm-workspace.yaml` to the exact version inside that range. Do not leave `4.0.2` in the same tree: pnpm then installs two copies of `@deepseek-ai/dsh-tools`, the `TOOL_RUNTIME_SCHEDULER` symbol `dsh-agent-loop` holds is local to its module, and it misses the ToolRuntime the other copy constructed. Tool calls then die on the first step with `Cannot read properties of undefined (reading 'prepare')`. Restoring the baseline pin puts cordis back at `4.0.2`.
+`0.1.7-alpha.1`'s `dsh` depends on cordis `^4.0.3`; `0.1.7-alpha.2`, `0.1.7-rc.1`, `0.1.7-rc.2`, and `0.2.0-rc.2` depend on `~4.0.4`. `upgrade-dsh.mjs` repoints the `@deepseek-ai/cordis` dev pin and the cordis release-age line in `pnpm-workspace.yaml` to the exact version inside that range. Do not leave `4.0.2` in the same tree: pnpm then installs two copies of `@deepseek-ai/dsh-tools`, the `TOOL_RUNTIME_SCHEDULER` symbol `dsh-agent-loop` holds is local to its module, and it misses the ToolRuntime the other copy constructed. Tool calls then die on the first step with `Cannot read properties of undefined (reading 'prepare')`. Restoring the baseline pin puts cordis back at `4.0.2`.
 
 Two traps that only bite locally (CI always starts from a clean checkout):
 
@@ -151,6 +161,7 @@ Two traps that only bite locally (CI always starts from a clean checkout):
 0.1.7-alpha.2  same dialect as 0.1.7-alpha.1 (journey 55/55)
 0.1.7-rc.1     same dialect as 0.1.7-alpha.1 (journey 55/55)
 0.1.7-rc.2     same dialect as 0.1.7-rc.1 (`/v1/messages` is unchanged; a route that does not declare `toolUpdate` strips developer messages)
+0.2.0-rc.2     same as 0.1.7-rc.2 (still `/v1/messages`; on this host journey is 52/52 with 2 real-kernel assertions skipped)
 ```
 
 That change does not pass through plugin code, but it breaks the scripted endpoint in `scripts/smoke-journey.mjs`. The endpoint now picks its dialect **by request path**, built by `chatCompletionFrames()` and `messagesFrames()` respectively.

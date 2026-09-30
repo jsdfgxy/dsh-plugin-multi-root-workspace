@@ -10,6 +10,15 @@ This file records the user-visible changes of every **released** version.
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-09-30
+
+With the exact allowlist contract from `v0.1.4` unchanged, the supported upstream runtimes grow to `0.2.0-rc.2` — the first release of the 0.2 series; the reasoning is still [ADR-0009](./docs/decisions/ADR-0009-dsh-compat-contract.md).
+
+### Added
+
+- **Support for the upstream runtime `0.2.0-rc.2`**. Relative to `0.1.7-rc.2`, every shape this bundle probes is unchanged: `confine` (still a `Promise` taking an optional `signal`), instruction rendering (still `renderAgentInstructions`), session format 4 (still rejecting `kind: 'plugin'`, so additional-root instructions keep using this plugin's own source kind), the tool-failure bit (still `isError` on the message itself), panel icons (still the Regular weight names), the current-session catalog (still the row's `retainedBy.mainView`), in-process boot (still `createRuntimeResolution` plus `PluginPackages`), and bash execution (still `shell.execute().result()`). The adapter layer therefore has no new branch. cordis stays at `~4.0.4`. The install-time peer gate is the same one introduced in `0.1.7-rc.1`, so `peerDependencies` and the allowlist have to widen in the same change. The development pin remains `0.1.5-rc.2`.
+- **Note: `0.2.0-rc.1` is not on the support list.** It is a pre-release of the same `0.2.0` as `0.2.0-rc.2`, but this plugin has never been measured against it; under the exact-allowlist contract an unmeasured release is never listed — `dsh plugin add` refuses it, and even past that gate the runtime gate at startup fails closed. Use `0.2.0-rc.2` to move to the 0.2 series.
+
 ## [0.1.4] - 2026-09-25
 
 With the exact allowlist contract from `v0.1.3` unchanged, the supported upstream runtimes grow to `0.1.7-rc.2`; the reasoning is still [ADR-0009](./docs/decisions/ADR-0009-dsh-compat-contract.md).
@@ -99,7 +108,8 @@ The first release: the three MVP milestones (M1–M3).
 
 - All eight findings of the pre-release external review (three of them release-blocking) are fixed, each with a regression test: a registered directory replaced by a symlink transplanting its authority (which introduced `recordedPath` — **re-resolving a path is not re-authorizing it**), concurrent registry mutations losing a write or reviving a revoked grant (per-primary-root mutations are serialized), a refresh not re-checking directories, a typed path being overwritten by the directory picker, the `reveal` response contract and failure code, duplicate ids not validated, the primary root missing from nesting validation, and CI testing before building.
 
-[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.1...v0.1.2

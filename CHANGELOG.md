@@ -10,6 +10,15 @@ English: [CHANGELOG.en.md](./CHANGELOG.en.md)
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-09-30
+
+在 `v0.1.4` 的精确 allowlist 契约不变的前提下，把受支持的上游运行时扩展到 `0.2.0-rc.2`——第一个 0.2 系列版本；设计取舍仍见 [ADR-0009](./docs/decisions/ADR-0009-dsh-compat-contract.md)。
+
+### Added
+
+- **支持上游运行时 `0.2.0-rc.2`**。相对 `0.1.7-rc.2`，`confine`（仍是带可选 `signal` 的 `Promise`）、指令渲染（仍是 `renderAgentInstructions`）、session format 4（仍拒绝 `kind: 'plugin'`，附加根指令继续用本插件自己的 source kind）、工具失败位（仍在消息自身的 `isError`）、面板图标（仍是 Regular 线宽名）、当前会话目录（仍走目录行的 `retainedBy.mainView`）、进程内启动（仍是 `createRuntimeResolution` + `PluginPackages`）与 bash 执行（仍是 `shell.execute().result()`）的形状都没有变，所以适配层没有新分支。cordis 仍是 `~4.0.4`。安装期 peer 门禁与 `0.1.7-rc.1` 起相同，所以 `peerDependencies` 与 allowlist 必须在同一次改动里加宽。开发 pin 仍是 `0.1.5-rc.2`。
+- **注意：`0.2.0-rc.1` 不在支持清单上。** 它与 `0.2.0-rc.2` 同属 0.2.0 的预发布，但本插件没有对它实测过；按精确 allowlist 契约，未实测的版本一律不列入——`dsh plugin add` 会拒绝它，即使绕过安装期门禁，启动时的运行时门禁也会 fail closed。升到 0.2 系列请用 `0.2.0-rc.2`。
+
 ## [0.1.4] - 2026-09-25
 
 在 `v0.1.3` 的精确 allowlist 契约不变的前提下，把受支持的上游运行时扩展到 `0.1.7-rc.2`；设计取舍仍见 [ADR-0009](./docs/decisions/ADR-0009-dsh-compat-contract.md)。
@@ -99,7 +108,8 @@ English: [CHANGELOG.en.md](./CHANGELOG.en.md)
 
 - 发布前外部评审提出的 8 项发现（其中 3 项发布阻断）全部修复，每项各带一个回归测试：登记目录被替换为符号链接后授权转移（引入 `recordedPath`，**重新解析路径不等于重新授权**）、并发修改注册表丢写或复活已撤销的授权（每个主根的变更串行）、刷新不重新检查目录、手输路径被目录选择器覆盖、`reveal` 的应答契约与失败码、重复 id 未校验、主根未纳入嵌套校验、CI 先测后构建。
 
-[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.1...v0.1.2

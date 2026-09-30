@@ -93,7 +93,7 @@ compat 失败  →  该行抛错               →  四个 provider 永不启动
 
 - `src/compat/sandbox-confine.ts` —— `widenConfined()` **保形**：上游同步就同步返回，上游返回 promise 就返回 promise。绝不把同步结果包成 promise，因为在 `0.1.5-rc.2` 上那会把 `ctx.sandbox.confine()` 对组合里每一个调用方（bash executor、PTY backend）都变成 thenable。返回类型用 `ReturnType<LocalSandboxProvider['confine']>` 从**已安装的**基类推导，于是一份签名同时对两个版本成立。
 - `src/compat/agent-instructions.ts` —— 业务层只调用 `renderInstructions(...)`；适配器按**导出名**挑选 `renderAgentInstructions ?? renderWorkspaceContext`。
-- `src/compat/client-session.ts` —— 业务层只调用 `currentSessionIdOf(sessions)`；适配器先认非空的 `list.current`（0.1.5 / 0.1.6-alpha.1），否则取 `retainedBy.mainView > 0` 的目录行（0.1.6-alpha.2 与 0.1.7-alpha.1 至 0.1.7-rc.2；0.1.7 挪走了其它目录字段，未改这一谓词）。绝不回退 `ids[0]`。
+- `src/compat/client-session.ts` —— 业务层只调用 `currentSessionIdOf(sessions)`；适配器先认非空的 `list.current`（0.1.5 / 0.1.6-alpha.1），否则取 `retainedBy.mainView > 0` 的目录行（0.1.6-alpha.2 与 0.1.7-alpha.1 至 0.1.7-rc.2，以及 0.2.0-rc.2；0.1.7 挪走了其它目录字段，未改这一谓词）。绝不回退 `ids[0]`。
 
 一律用结构探测（是否 thenable、导出哪个名字、快照有没有 `current`）而不是比较版本号：结构探测还能应付上游在同一版本内改形状，或一个版本里同时保留两个名字。
 
@@ -224,6 +224,18 @@ PR #1（head `507c954`）的 P2-3 / P2-4 / P2-5 收紧了两条规则（内容�
 对照 tag `dsh-v0.1.7-rc.1` → `dsh-v0.1.7-rc.2`：本插件依赖的 `confine`、instruction renderer、session format 4、工具失败位、面板图标、`retainedBy.mainView`、`createRuntimeResolution` / `PluginPackages`、`shell.execute().result()` 都没有改形状。cordis 仍是 `~4.0.4`。适配层没有新分支。安装期 peer 门禁与 `rc.1` 相同，所以 peer 与 allowlist 在同一次改动里加宽。
 
 实测（macOS，seatbelt 可用，bwrap / landlock 不可用）：`0.1.7-rc.2` 纳入后 enforce（cordis `4.0.4`）与基线回归（pin 回到 `0.1.5-rc.2`，cordis `4.0.2`）都是 343 passed / 3 skipped，compose 40/40，behavior 99/99，journey 55/55。
+
+## 后续提升（2026-09-30）：纳入 `0.2.0-rc.2`
+
+按本 ADR 的人工提升流程，把 `0.2.0-rc.2`（0.2 系列的第一个版本）写入 `SUPPORTED_DSH_RELEASES`，`peerDependencies` 改为八项精确或。开发 pin 仍是 `0.1.5-rc.2`（cordis `4.0.2`）。
+
+对照 `0.1.7-rc.2` → `0.2.0-rc.2`：本插件依赖的形状全都没有变——`confine` 仍是带可选 `signal` 的 `Promise`，instruction renderer 仍是 `renderAgentInstructions`，`SESSION_FORMAT_VERSION` 仍是 `4`（仍拒绝 `kind: 'plugin'`），工具失败位仍在消息自身的 `isError`，面板图标仍是 Regular 线宽名，当前会话仍取目录行的 `retainedBy.mainView`，进程内启动仍是 `createRuntimeResolution` + `PluginPackages`，bash 执行仍是 `shell.execute().result()`。cordis 仍是 `~4.0.4`。适配层没有新分支。安装期 peer 门禁与 `0.1.7-rc.1` 起相同，所以 peer 与 allowlist 在同一次改动里加宽。
+
+逐包核对（29 个 `@deepseek-ai/*` 包 × 两个版本）确认其中 17 个逐字节相同，其余 12 个的差异都不碰本插件的探针；几处"差一点就咬到"的变更（上游收紧 `openTurnClosers` 配对、`forkSession` 签名、primitives 组件重塑、Typert face model 新增 source kind、cordis `Fiber.update` 返回值收窄）连同"为什么不需要适配分支"记在 [Agent Note §4](../../.agent/note/dsh-compat-contract.md)。
+
+**同系列的 `0.2.0-rc.1` 不纳入。** 它同样是 `0.2.0` 的预发布，但本插件没有对它实测过；精确 allowlist 的语义是"列出的就是实测过的"，所以支持清单从此不再是连续区间。这是契约的正常结果，不是遗漏，也不该用"同系列所以形状相同"来推断了事。
+
+实测（macOS，seatbelt 可用，bwrap / landlock 不可用）：`0.2.0-rc.2` 纳入后 enforce（cordis `4.0.4`）为 342 passed / 4 skipped，compose 40/40，behavior 91/91（另有 4 条真实内核方言断言在本机跳过），journey 52/52（另有 2 条真实内核断言跳过）。kernel:probe 在本机报告 seatbelt runner-failed（`sandbox_apply: Operation not permitted`），因此比上表少一条 seatbelt 实测断言；`0.1.5-rc.2` 基线回归见下节。
 
 ## Related Documents
 
