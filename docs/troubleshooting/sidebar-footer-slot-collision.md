@@ -74,18 +74,52 @@ Settings 齿轮的 18px 墨线。槽位是共享的，这个前提不成立，�
 ```
 
 `tests/client-styles.spec.ts` 把这几条钉成契约：行必须可收缩（`flex: 0 1 auto` +
-`min-width: 0`）、不得有负的横向 margin、宽度不得用 `calc(…%)` 超出份额、标签必须
-省略号，而 rail 形态必须固定尺寸。**用旧的 `flex: none` + `calc(100% + 4px)` +
-负 margin 跑这个测试会失败**，失败信息直接点名这套组合。
+`min-width: 0`）、不得有负的横向 margin、不得有正的纵向 margin、宽度不得用 `calc(…%)`
+超出份额、必须恰好一个控件高（`margin: 0` + `height: 42px`）、标签必须省略号，而 rail
+形态必须固定尺寸。**用旧的 `flex: none` + `calc(100% + 4px)` + 负 margin 跑这个测试会
+失败**，失败信息直接点名这套组合。
 
-代价：本插件独自占据该槽位时，图标相对下方齿轮会偏 2px。共享槽位里这是正确取舍——
-宁可自己偏 2px，也不能把别的插件压没。
+### 为什么纵向 margin 也必须为 0
 
-## 与 `dsh-sidebar-footer-stack` 的关系
+那条 `margin: 4px 0` 是从宿主自己的 settings 行（`ui-settings-general` 的
+`.triggerRow`）抄来的，而宿主的 settings 行是它那个槽位的**唯一**子节点，可以随便外扩。
+在共享槽位里它有两个后果：
 
-`dsh-sidebar-footer-stack` 把该槽位整体改成**纵向堆叠**并统一卡片外观。两者不冲突：
-本修复针对"每个条目都必须是可收缩的 flex item"，在 `row` 和 `column` 两种布局下都成立。
-装了它之后多个卡片会纵向排列，本插件不再抢整行只是让它在**没装**它时也不再压坏邻居。
+- 本条目变成 42 + 8 = **50px** 高，旁边的 `dsh-context` 是 42px，两张卡因此上下错开
+  4px（"不对齐"）；
+- 纵向堆叠时它会在布局插件设的 `gap` 之外再加 4px，卡片间距不均。
+
+**外侧间距归容器管**：独占时下方宿主 settings 行自带 `margin: 4px -2px`，所以去掉我们
+这 4px 也不会贴在一起。
+
+### 2px 墨线对齐收在自己的份额里
+
+原来的 2px 侧向外溢是为了让本行图标落在下方齿轮的 18px 墨线上（宿主的 `.triggerRow`
+是 `width: calc(100% + 4px)` + `margin: … -2px`）。共享槽位里不能再外溢，于是改成把
+按钮左内边距从宿主的 `8px` 调成 **`6px`**：图标左缘落在容器内容边 +6px，与宿主的
+`−2 + 8 = +6px` 完全一致，但完全收在自己的盒子里。
+
+## 想要"上下各一行"（纵向堆叠）
+
+这是**容器级**决定，不是条目级：宿主把 `sidebar.footer.action` 声明成
+`kind: 'list'`，并自己把容器渲染成 `display:flex` 的一行，`slot` 系统不允许注册者改变
+容器的 `kind` 或布局。没有 `flex-wrap` 时，单个条目**无法**把自己换到第二行——
+`flex-basis: 100%` 只会撑破一行，不会换行。
+
+所以正确做法是装一个负责该槽位布局的插件，而不是让本插件去改宿主的共享容器（那正是
+本条目开头描述的越界）：
+
+```sh
+dsh plugin --profile <你的 profile> add dsh-sidebar-footer-stack
+```
+
+`dsh-sidebar-footer-stack` 就是为此存在的：把该槽位改成纵向堆叠、给所有条目统一卡片
+外观、并支持拖动换序。它**没有任何 `peerDependencies`**，所以 `0.1.7-rc.1` 起那套安装期
+peer 门禁拦不住它；它的选择器 `[class*="footerActions"]` 在 `0.1.7-rc.2` 与 `0.2.0-rc.2`
+上都能匹配（两者都把容器渲染成 `display:flex`，类名是 `<hash>_footerActions`）。
+
+不要在本插件里加 `[class*="footerActions"]{flex-direction:column}`：那会替宿主和别的
+插件决定布局，而且会和 `dsh-sidebar-footer-stack` 的 `!important` 规则叠加。
 
 ## 相关
 

@@ -10,6 +10,14 @@ English: [CHANGELOG.en.md](./CHANGELOG.en.md)
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-09-30
+
+### Fixed
+
+- **底部两张卡片上下错开 4px**：上一条修复去掉了 2px 侧向外溢，但行上还留着从宿主 `.triggerRow` 抄来的 `margin: 4px 0`。在共享槽位里这会让本条目高 42 + 8 = 50px，而邻居（`dsh-context`）是 42px，两张卡因此不在一条线上；纵向堆叠时还会在布局插件的 `gap` 之外再加 4px。现在行的外边距为 0，条目恰好是一个 42px 控件——**外侧间距归容器管**（宿主 settings 行自带 4px 上边距，独占时不会贴住）。契约测试同步收紧：行不得有正的纵向 margin，且必须恰好一个控件高。
+- **图标墨线对齐改在内部实现**：原先靠 2px 外溢对齐下方齿轮，去掉后图标偏 2px。现在把按钮左内边距从宿主的 `8px` 改为 `6px`，图标左缘仍落在容器内容边 +6px，但完全收在自己的盒子里，不再压到邻居。
+- **想要"上下各一行"请在 profile 里装 `dsh-sidebar-footer-stack`**：宿主把 `sidebar.footer.action` 渲染成一行 flex，`slot` 系统不允许注册者改变容器布局，所以纵向堆叠是**容器级**决定，不属于本插件。该插件无 `peerDependencies`，安装期 peer 门禁拦不住。理由与诊断见[故障排查](./docs/troubleshooting/sidebar-footer-slot-collision.md)。
+
 ## [0.1.6] - 2026-09-30
 
 ### Fixed
@@ -114,7 +122,8 @@ English: [CHANGELOG.en.md](./CHANGELOG.en.md)
 
 - 发布前外部评审提出的 8 项发现（其中 3 项发布阻断）全部修复，每项各带一个回归测试：登记目录被替换为符号链接后授权转移（引入 `recordedPath`，**重新解析路径不等于重新授权**）、并发修改注册表丢写或复活已撤销的授权（每个主根的变更串行）、刷新不重新检查目录、手输路径被目录选择器覆盖、`reveal` 的应答契约与失败码、重复 id 未校验、主根未纳入嵌套校验、CI 先测后构建。
 
-[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.3...v0.1.4

@@ -10,6 +10,14 @@ This file records the user-visible changes of every **released** version.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-09-30
+
+### Fixed
+
+- **Two footer cards sitting 4px out of line**: the previous fix removed the 2px side overhang, but the row still carried the `margin: 4px 0` copied from the host's `.triggerRow`. In a shared slot that makes this entry 42 + 8 = 50px tall next to a 42px neighbour (`dsh-context`), so the two cards no longer share a line; under a stacking layout it also adds 4px on top of the layout plugin's `gap`. The row's outer margin is now zero and the entry is exactly one 42px control — **outer spacing belongs to the container** (the host's settings row brings its own 4px top margin, so the solo case stays separated). The contract test is tightened to match: the row may carry no positive vertical margin and must be exactly one control tall.
+- **Ink-line alignment moved inside the entry**: it used to come from the 2px overhang; without it the icon sat 2px off. The button's left padding is now `6px` instead of the host's `8px`, so the icon's left edge still lands at container content edge +6px, entirely inside our own box and clear of the neighbour.
+- **For "one per row", install `dsh-sidebar-footer-stack` into the profile**: the host renders `sidebar.footer.action` as one flex row and the slot system does not let a registrant change the container's layout, so vertical stacking is a **container-level** decision that does not belong in this plugin. That plugin declares no `peerDependencies`, so the install-time peer gate cannot refuse it. Reasoning and diagnostics: [troubleshooting](./docs/troubleshooting/sidebar-footer-slot-collision.md).
+
 ## [0.1.6] - 2026-09-30
 
 ### Fixed
@@ -114,7 +122,8 @@ The first release: the three MVP milestones (M1–M3).
 
 - All eight findings of the pre-release external review (three of them release-blocking) are fixed, each with a regression test: a registered directory replaced by a symlink transplanting its authority (which introduced `recordedPath` — **re-resolving a path is not re-authorizing it**), concurrent registry mutations losing a write or reviving a revoked grant (per-primary-root mutations are serialized), a refresh not re-checking directories, a typed path being overwritten by the directory picker, the `reveal` response contract and failure code, duplicate ids not validated, the primary root missing from nesting validation, and CI testing before building.
 
-[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.3...v0.1.4

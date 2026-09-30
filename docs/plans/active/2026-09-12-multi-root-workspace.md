@@ -1,6 +1,6 @@
 # 开发路径文档：Multi-root Workspace（不改上游）
 
-> 状态：active（**进度总账 + 里程碑概览**）。MVP-v0.1.0（M1/M2/M3）已实施并以 `v0.1.0` 发版（2026-09-13）；v0.1.1 硬化批次（H1–H4）已实施、全绿并随 `v0.1.1` 发版（2026-09-16）；v0.1.2 支持矩阵提升（`0.1.6-alpha.2`、`0.1.7-alpha.1`）已实施并随 `v0.1.2` 发版（2026-09-22）；v0.1.3 支持矩阵提升（`0.1.7-alpha.2`、`0.1.7-rc.1`）已实施并随 `v0.1.3` 发版（2026-09-24）；v0.1.4 支持矩阵提升（`0.1.7-rc.2`）已实施并随 `v0.1.4` 发版（2026-09-25）；v0.1.5 支持矩阵提升（`0.2.0-rc.2`）已实施并随 `v0.1.5` 发版（2026-09-30）；v0.1.6 修复侧栏底部共享槽位（`sidebar.footer.action`）抢位问题，已实施并随 `v0.1.6` 发版（2026-09-30）；第二期（B 系列）范围见[需求文档 §4/§7](../../requirements/multi-root-workspace.md)。
+> 状态：active（**进度总账 + 里程碑概览**）。MVP-v0.1.0（M1/M2/M3）已实施并以 `v0.1.0` 发版（2026-09-13）；v0.1.1 硬化批次（H1–H4）已实施、全绿并随 `v0.1.1` 发版（2026-09-16）；v0.1.2 支持矩阵提升（`0.1.6-alpha.2`、`0.1.7-alpha.1`）已实施并随 `v0.1.2` 发版（2026-09-22）；v0.1.3 支持矩阵提升（`0.1.7-alpha.2`、`0.1.7-rc.1`）已实施并随 `v0.1.3` 发版（2026-09-24）；v0.1.4 支持矩阵提升（`0.1.7-rc.2`）已实施并随 `v0.1.4` 发版（2026-09-25）；v0.1.5 支持矩阵提升（`0.2.0-rc.2`）已实施并随 `v0.1.5` 发版（2026-09-30）；v0.1.6 修复侧栏底部共享槽位（`sidebar.footer.action`）抢位问题，已实施并随 `v0.1.6` 发版（2026-09-30）；v0.1.7 修复该条目的对齐（恰好一个控件高、无外侧 margin），已实施并随 `v0.1.7` 发版（2026-09-30）；第二期（B 系列）范围见[需求文档 §4/§7](../../requirements/multi-root-workspace.md)。
 > 设计依据：[multi-root-workspace.md](../../architecture/multi-root-workspace.md)；验收标准见 [multi-root-workspace.md](../../requirements/multi-root-workspace.md) §5。
 > 产物是本仓库（`dsh-plugin-multi-root-workspace`，包 `@dsh-electron/dsh-plugin-multi-root-workspace`），经 `dsh plugin --profile <name> add <path|git>` 安装；对上游仓库（deepseek-harness）零改动。
 > 插件仓库自建门禁（上游 `verify-cordis-config` 等仓库 gates 不适用）：lint + typecheck + vitest 全绿 + patch 快照测试。
@@ -35,6 +35,7 @@
 | v0.1.4 | compat | DSH 支持矩阵扩展至 `0.1.7-rc.2`；相对 `rc.1` 形状未变，无新适配分支，cordis 仍是 `~4.0.4` | — | [0009](../../decisions/ADR-0009-dsh-compat-contract.md) | `f2a8f75` | `v0.1.4` |
 | v0.1.5 | compat | DSH 支持矩阵扩展至 `0.2.0-rc.2`（0.2 系列首个受支持版本）；相对 `0.1.7-rc.2` 形状未变，无新适配分支；同系列 `0.2.0-rc.1` 未实测，不在清单上 | — | [0009](../../decisions/ADR-0009-dsh-compat-contract.md) | `06a6ddc` | `v0.1.5` |
 | v0.1.6 | client | 侧栏底部动作与同槽位插件抢位：`sidebar.footer.action` 是共享 list 槽位，行样式改为可收缩的 flex item；新增不变量 10 与回归测试 | — | [0006](../../decisions/ADR-0006-client-ui-host-tokens.md) | `751b1a4` | `v0.1.6` |
+| v0.1.7 | client | 底部条目对齐：行外边距归零、恰好一个 42px 控件高、墨线对齐改由按钮内边距实现；"上下各一行"归容器级布局插件（`dsh-sidebar-footer-stack`） | — | [0006](../../decisions/ADR-0006-client-ui-host-tokens.md) | `76c6695` | `v0.1.7` |
 | 第二期 | B 系列 | Windows 内核级多根、per-root 权限、`workspace-files` 多根、LSP 路由等 | 见[需求文档 §4/§7](../../requirements/multi-root-workspace.md) | — | — | 未开始 |
 
 ## 总体策略
@@ -255,6 +256,35 @@ MVP 三个里程碑加一个硬化批次，每一项都独立可验证，且**�
 | 发布状态与 CHANGELOG | 路线图、README（中英）的版本句与 tarball / tag 示例对齐 `v0.1.6`；[`CHANGELOG.md`](../../../CHANGELOG.md) / [`CHANGELOG.en.md`](../../../CHANGELOG.en.md) 新增 `0.1.6` 条目；新增故障排查条目并登记进索引（中英） |
 
 **版本号与 tag 由发版提交完成**（`pnpm release patch --tag` → `chore(release): v0.1.6` + annotated tag `v0.1.6`）；推送 tag（进而触发 npm 发布与 GitHub Release）是人工动作。
+
+## v0.1.7 — 底部条目对齐修复（已实施，已发版准备完成）
+
+> 用户可见变更见 [`CHANGELOG.md`](../../../CHANGELOG.md) 的 `0.1.7` 条目；几何取舍见[故障排查：侧栏底部只剩一个卡片](../../troubleshooting/sidebar-footer-slot-collision.md)。
+
+### 缺陷与修复（随 `v0.1.7` 发版，2026-09-30）
+
+`v0.1.6` 修掉了 `flex: none` 造成的抢位，但行上仍留着从宿主 `ui-settings-general` 的 `.triggerRow` 抄来的 `margin: 4px 0`。宿主那条规则成立是因为它的行是所在槽位的**唯一**子节点；在共享的 `sidebar.footer.action` 里它有两个后果：
+
+- 本条目变成 42 + 8 = **50px** 高，旁边 `dsh-context` 是 42px，两张卡上下错开 4px；
+- 纵向堆叠时在布局插件的 `gap` 之外再加 4px，间距不均。
+
+修复：行外边距归零（条目恰好一个 42px 控件，**外侧间距归容器管**；宿主 settings 行自带 `margin: 4px -2px`，独占时不会贴住）。原先靠 2px 外溢实现的墨线对齐改为写进按钮内边距：左内边距 `8px` → `6px`，图标左缘仍是容器内容边 +6px（与宿主 `−2 + 8` 一致），但完全收在自己的盒子里。
+
+**"上下各一行"没有做进本插件**：宿主把该槽位容器渲染成 `display:flex` 的一行，`slot` 系统不允许注册者改变容器布局，没有 `flex-wrap` 时单个条目无法换行——这是**容器级**决定，正确做法是 profile 里装 `dsh-sidebar-footer-stack`（无 `peerDependencies`，安装期门禁拦不住）。理由与诊断已写入故障排查条目。
+
+| 项 | 结果 |
+|---|---|
+| 契约测试 | `tests/client-styles.spec.ts` 5/5 通过；把行样式还原为 `margin: 4px 0` 后其中 2 条失败（已实测，失败信息点名"正的纵向 margin 会让 42px 邻居错位"） |
+| 本地门禁 | `lint`（0/0）+ `typecheck` + `build` + `test`（347 passed / 4 skipped）+ `docs:check` 全绿（2026-09-30，macOS） |
+| 视觉确认 | **未在本机完成**：几何由宿主 CSS（`.triggerRow` 的 `margin: 4px -2px`、`.trigger` 的 `42px`）与契约测试支撑，真实浏览器里的对齐需人工确认 |
+
+### 发版准备（2026-09-30）
+
+| 项 | 结果 |
+|---|---|
+| 发布状态与 CHANGELOG | 路线图、README（中英）的版本句与 tarball / tag 示例对齐 `v0.1.7`；[`CHANGELOG.md`](../../../CHANGELOG.md) / [`CHANGELOG.en.md`](../../../CHANGELOG.en.md) 新增 `0.1.7` 条目；故障排查条目补充对齐几何与"纵向堆叠属于容器"两节 |
+
+**版本号与 tag 由发版提交完成**（`pnpm release patch --tag` → `chore(release): v0.1.7` + annotated tag `v0.1.7`）；推送 tag（进而触发 npm 发布与 GitHub Release）是人工动作。
 
 ## 里程碑与仓库状态对照
 
