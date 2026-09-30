@@ -10,6 +10,12 @@ This file records the user-visible changes of every **released** version.
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-09-30
+
+### Fixed
+
+- **The sidebar footer fought other plugins for the row**: `sidebar.footer.action` is a **shared** `kind: 'list'` slot, its container `.footerActions` is a flex row, and the slot's anchor is `display:contents` — so every registrant's root element is a sibling flex item. This plugin's row used to be `flex: none` + `width: calc(100% + 4px)` + a negative horizontal margin, which is "claim the whole row and refuse to shrink": the sibling entry was squeezed down to its bare icon and the two cards overlapped (the measured victim was `dsh-context`'s context overview card). The row is now a shrinkable flex item (`flex: 0 1 auto` + `min-width: 0` + `width: 100%` + no negative margin), and the label ellipsizes instead of being clipped mid-glyph; the collapsed rail form is still a fixed 36px. `tests/client-styles.spec.ts` pins all of it and fails on the old recipe. Trade-off: while this plugin is the only footer entry, its icon sits 2px off the Settings gear's ink line (the 4px overhang used to align it). Diagnosis and reasoning: [Troubleshooting: only one card survives at the sidebar footer](./docs/troubleshooting/sidebar-footer-slot-collision.md).
+
 ## [0.1.5] - 2026-09-30
 
 With the exact allowlist contract from `v0.1.4` unchanged, the supported upstream runtimes grow to `0.2.0-rc.2` — the first release of the 0.2 series; the reasoning is still [ADR-0009](./docs/decisions/ADR-0009-dsh-compat-contract.md).
@@ -108,7 +114,8 @@ The first release: the three MVP milestones (M1–M3).
 
 - All eight findings of the pre-release external review (three of them release-blocking) are fixed, each with a regression test: a registered directory replaced by a symlink transplanting its authority (which introduced `recordedPath` — **re-resolving a path is not re-authorizing it**), concurrent registry mutations losing a write or reviving a revoked grant (per-primary-root mutations are serialized), a refresh not re-checking directories, a typed path being overwritten by the directory picker, the `reveal` response contract and failure code, duplicate ids not validated, the primary root missing from nesting validation, and CI testing before building.
 
-[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.2...v0.1.3

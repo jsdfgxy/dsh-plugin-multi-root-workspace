@@ -10,6 +10,12 @@ English: [CHANGELOG.en.md](./CHANGELOG.en.md)
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-09-30
+
+### Fixed
+
+- **侧栏底部与其它插件抢位**：`sidebar.footer.action` 是宿主声明为 `kind: 'list'` 的**共享**槽位，容器 `.footerActions` 是一行 flex，槽位 anchor 是 `display:contents`——每个注册者的根元素都是同一行的 flex item。本插件的行样式曾经是 `flex: none` + `width: calc(100% + 4px)` + 负的横向 margin，等于"占满整行且拒绝收缩"，于是同槽位的插件被压成只剩一个图标、两张卡还会互相压住（实测受害者是 `dsh-context` 的 context overview 卡片）。现在本行是可收缩的 flex item（`flex: 0 1 auto` + `min-width: 0` + `width: 100%` + 无负 margin），标签变窄时用省略号收尾而不是切掉半个字；折叠 rail 形态仍是固定 36px。`tests/client-styles.spec.ts` 把这几条钉成契约，用旧样式跑会失败。代价：本插件独自占据该槽位时，图标相对下方齿轮偏 2px（原先靠那 4px 外溢对齐）。诊断与取舍见[故障排查：侧栏底部只剩一个卡片](./docs/troubleshooting/sidebar-footer-slot-collision.md)。
+
 ## [0.1.5] - 2026-09-30
 
 在 `v0.1.4` 的精确 allowlist 契约不变的前提下，把受支持的上游运行时扩展到 `0.2.0-rc.2`——第一个 0.2 系列版本；设计取舍仍见 [ADR-0009](./docs/decisions/ADR-0009-dsh-compat-contract.md)。
@@ -108,7 +114,8 @@ English: [CHANGELOG.en.md](./CHANGELOG.en.md)
 
 - 发布前外部评审提出的 8 项发现（其中 3 项发布阻断）全部修复，每项各带一个回归测试：登记目录被替换为符号链接后授权转移（引入 `recordedPath`，**重新解析路径不等于重新授权**）、并发修改注册表丢写或复活已撤销的授权（每个主根的变更串行）、刷新不重新检查目录、手输路径被目录选择器覆盖、`reveal` 的应答契约与失败码、重复 id 未校验、主根未纳入嵌套校验、CI 先测后构建。
 
-[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/cherrchen/dsh-plugin-multi-root-workspace/compare/v0.1.2...v0.1.3

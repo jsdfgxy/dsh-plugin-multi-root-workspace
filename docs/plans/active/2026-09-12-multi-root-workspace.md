@@ -1,6 +1,6 @@
 # 开发路径文档：Multi-root Workspace（不改上游）
 
-> 状态：active（**进度总账 + 里程碑概览**）。MVP-v0.1.0（M1/M2/M3）已实施并以 `v0.1.0` 发版（2026-09-13）；v0.1.1 硬化批次（H1–H4）已实施、全绿并随 `v0.1.1` 发版（2026-09-16）；v0.1.2 支持矩阵提升（`0.1.6-alpha.2`、`0.1.7-alpha.1`）已实施并随 `v0.1.2` 发版（2026-09-22）；v0.1.3 支持矩阵提升（`0.1.7-alpha.2`、`0.1.7-rc.1`）已实施并随 `v0.1.3` 发版（2026-09-24）；v0.1.4 支持矩阵提升（`0.1.7-rc.2`）已实施并随 `v0.1.4` 发版（2026-09-25）；v0.1.5 支持矩阵提升（`0.2.0-rc.2`）已实施并随 `v0.1.5` 发版（2026-09-30）；第二期（B 系列）范围见[需求文档 §4/§7](../../requirements/multi-root-workspace.md)。
+> 状态：active（**进度总账 + 里程碑概览**）。MVP-v0.1.0（M1/M2/M3）已实施并以 `v0.1.0` 发版（2026-09-13）；v0.1.1 硬化批次（H1–H4）已实施、全绿并随 `v0.1.1` 发版（2026-09-16）；v0.1.2 支持矩阵提升（`0.1.6-alpha.2`、`0.1.7-alpha.1`）已实施并随 `v0.1.2` 发版（2026-09-22）；v0.1.3 支持矩阵提升（`0.1.7-alpha.2`、`0.1.7-rc.1`）已实施并随 `v0.1.3` 发版（2026-09-24）；v0.1.4 支持矩阵提升（`0.1.7-rc.2`）已实施并随 `v0.1.4` 发版（2026-09-25）；v0.1.5 支持矩阵提升（`0.2.0-rc.2`）已实施并随 `v0.1.5` 发版（2026-09-30）；v0.1.6 修复侧栏底部共享槽位（`sidebar.footer.action`）抢位问题，已实施并随 `v0.1.6` 发版（2026-09-30）；第二期（B 系列）范围见[需求文档 §4/§7](../../requirements/multi-root-workspace.md)。
 > 设计依据：[multi-root-workspace.md](../../architecture/multi-root-workspace.md)；验收标准见 [multi-root-workspace.md](../../requirements/multi-root-workspace.md) §5。
 > 产物是本仓库（`dsh-plugin-multi-root-workspace`，包 `@dsh-electron/dsh-plugin-multi-root-workspace`），经 `dsh plugin --profile <name> add <path|git>` 安装；对上游仓库（deepseek-harness）零改动。
 > 插件仓库自建门禁（上游 `verify-cordis-config` 等仓库 gates 不适用）：lint + typecheck + vitest 全绿 + patch 快照测试。
@@ -34,6 +34,7 @@
 | v0.1.3 | compat | DSH 支持矩阵扩展至 `0.1.7-alpha.2` 与 `0.1.7-rc.1`；形状未变，`rc.1` 安装期 peer 门禁要求精确 peer | — | [0009](../../decisions/ADR-0009-dsh-compat-contract.md) | `10381fc` | `v0.1.3` |
 | v0.1.4 | compat | DSH 支持矩阵扩展至 `0.1.7-rc.2`；相对 `rc.1` 形状未变，无新适配分支，cordis 仍是 `~4.0.4` | — | [0009](../../decisions/ADR-0009-dsh-compat-contract.md) | `f2a8f75` | `v0.1.4` |
 | v0.1.5 | compat | DSH 支持矩阵扩展至 `0.2.0-rc.2`（0.2 系列首个受支持版本）；相对 `0.1.7-rc.2` 形状未变，无新适配分支；同系列 `0.2.0-rc.1` 未实测，不在清单上 | — | [0009](../../decisions/ADR-0009-dsh-compat-contract.md) | `06a6ddc` | `v0.1.5` |
+| v0.1.6 | client | 侧栏底部动作与同槽位插件抢位：`sidebar.footer.action` 是共享 list 槽位，行样式改为可收缩的 flex item；新增不变量 10 与回归测试 | — | [0006](../../decisions/ADR-0006-client-ui-host-tokens.md) | `751b1a4` | `v0.1.6` |
 | 第二期 | B 系列 | Windows 内核级多根、per-root 权限、`workspace-files` 多根、LSP 路由等 | 见[需求文档 §4/§7](../../requirements/multi-root-workspace.md) | — | — | 未开始 |
 
 ## 总体策略
@@ -226,6 +227,34 @@ MVP 三个里程碑加一个硬化批次，每一项都独立可验证，且**�
 | 本地门禁 | `compat:check` + `lint` + `typecheck` + `build` + `test`（342 passed / 4 skipped）+ `smoke:compose` 40/40 + `smoke:behavior` 91/91 + `smoke:journey` 52/52 + `docs:check` 全绿（2026-09-30，macOS） |
 
 **版本号与 tag 由发版提交完成**（`pnpm release patch --tag` → `chore(release): v0.1.5` + annotated tag `v0.1.5`）；推送 tag（进而触发 npm 发布与 GitHub Release）是人工动作。
+
+## v0.1.6 — 侧栏底部共享槽位冲突修复（已实施，已发版准备完成）
+
+> 用户可见变更见 [`CHANGELOG.md`](../../../CHANGELOG.md) 的 `0.1.6` 条目；问题诊断与取舍见[故障排查：侧栏底部只剩一个卡片](../../troubleshooting/sidebar-footer-slot-collision.md)。
+
+### 缺陷与修复（随 `v0.1.6` 发版，2026-09-30）
+
+`sidebar.footer.action` 是宿主声明为 `kind: 'list'` 的**共享**槽位：容器 `SidebarRoot` 的 `.footerActions` 是 `display: flex` 的一行，槽位 anchor 是 `display:contents`，因此每个注册者的根元素都是同一行的 flex item（`dsh-context` 的 context overview 卡片与本插件的 action 是邻居）。
+
+本插件的 `.mrfw-triggerRow` 曾经是 `flex: none` + `width: calc(100% + 4px)` + `margin: 4px -2px`：`flex: none`（= `0 0 auto`）拒绝收缩并索要整行，邻居（`.lc-ov-entry`，`overflow: hidden` 让 `min-width: auto` 归零、默认 `flex-shrink: 1`）被压到只剩一个图标，负 margin 再让两者视觉重叠。那 4px 外溢原本是为了"本插件是唯一注册者"时把图标对齐到 Settings 齿轮的墨线——前提在共享槽位里不成立。
+
+修复：行改为 `flex: 0 1 auto` + `min-width: 0` + `box-sizing: border-box` + `width: 100%` + `margin: 4px 0`，标签加 `text-overflow: ellipsis`；折叠 rail 形态保留显式的 `flex: none; width: 36px`。代价是本插件独占该槽位时图标相对齿轮偏 2px。
+
+这条约束升级为 [AGENTS.md §不变量 10](../../../AGENTS.md)，由 `tests/client-styles.spec.ts` 机器钉住：行必须可收缩、不得有负横向 margin、宽度不得超过自身份额、标签必须省略号、rail 必须固定尺寸。用旧样式跑该测试会失败（失败信息点名 `flex: none` 与负 margin）。
+
+| 项 | 结果 |
+|---|---|
+| 契约测试 | `tests/client-styles.spec.ts` 4/4 通过；把行样式还原为旧配方后其中 2 条失败（已实测） |
+| 本地门禁 | `compat:check` + `lint`（0/0）+ `typecheck` + `build` + `test`（346 passed / 4 skipped）+ `smoke:compose` 40/40 + `smoke:behavior` 91/91（4 条内核断言跳过）+ `smoke:journey` 52/52（2 条跳过）+ `docs:check` 全绿（2026-09-30，macOS） |
+| 视觉确认 | **未在本机完成**：修复由结构分析与契约测试支撑，真实浏览器里的双卡片布局需在装有两者的 profile 上人工确认 |
+
+### 发版准备（2026-09-30）
+
+| 项 | 结果 |
+|---|---|
+| 发布状态与 CHANGELOG | 路线图、README（中英）的版本句与 tarball / tag 示例对齐 `v0.1.6`；[`CHANGELOG.md`](../../../CHANGELOG.md) / [`CHANGELOG.en.md`](../../../CHANGELOG.en.md) 新增 `0.1.6` 条目；新增故障排查条目并登记进索引（中英） |
+
+**版本号与 tag 由发版提交完成**（`pnpm release patch --tag` → `chore(release): v0.1.6` + annotated tag `v0.1.6`）；推送 tag（进而触发 npm 发布与 GitHub Release）是人工动作。
 
 ## 里程碑与仓库状态对照
 

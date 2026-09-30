@@ -26,6 +26,8 @@ Three things make this plugin worth looking at:
 
 **Done and released: `v0.1.5`** — with the `v0.1.4` contract unchanged, the supported upstream runtimes grow to `0.2.0-rc.2`, the first supported release of the 0.2 series (same shapes as `0.1.7-rc.2`, no new adapter branch; the sibling `0.2.0-rc.1` was never measured, so it is not on the list). See the [CHANGELOG](./CHANGELOG.en.md).
 
+**Done and released: `v0.1.6`** — fixes the sidebar footer action fighting other plugins for the same slot: `sidebar.footer.action` is a shared list slot, and this plugin's row used to claim the whole row and refuse to shrink, squeezing `dsh-context`'s card down to an icon. See the [CHANGELOG](./CHANGELOG.en.md).
+
 The single source of truth for progress, numbering, and release state is the [roadmap progress ledger](./docs/plans/active/2026-09-12-multi-root-workspace.md#进度总账) (M1–M4 are the MVP milestone numbers, H1–H4 are the `v0.1.1` batch numbers, and H1 is M4); per-item evidence lives in the [completed plans](./docs/plans/README.md), and the user-visible changes of each version are in the [CHANGELOG](./CHANGELOG.en.md).
 
 ## Quick Start
@@ -88,8 +90,8 @@ This installs pre-built artifacts (the plugin itself is never compiled), but the
 ```sh
 pnpm pack @dsh-electron/dsh-plugin-multi-root-workspace
 # or download the tgz from the GitHub Release assets, e.g.:
-# https://github.com/cherrchen/dsh-plugin-multi-root-workspace/releases/download/v0.1.5/dsh-electron-dsh-plugin-multi-root-workspace-0.1.5.tgz
-dsh plugin --profile web add ./dsh-electron-dsh-plugin-multi-root-workspace-0.1.5.tgz
+# https://github.com/cherrchen/dsh-plugin-multi-root-workspace/releases/download/v0.1.6/dsh-electron-dsh-plugin-multi-root-workspace-0.1.6.tgz
+dsh plugin --profile web add ./dsh-electron-dsh-plugin-multi-root-workspace-0.1.6.tgz
 ```
 
 Also pre-built (the plugin itself is never compiled here), handy for air-gapped or offline delivery — and the first `add` needs the same `allowBuilds` answer.
@@ -108,10 +110,10 @@ allowBuilds:
   koffi: true
 ```
 
-Then run `add` again. Pinning a tag (e.g. `#v0.1.5`) is recommended so a later push cannot silently change what actually runs:
+Then run `add` again. Pinning a tag (e.g. `#v0.1.6`) is recommended so a later push cannot silently change what actually runs:
 
 ```sh
-dsh plugin --profile web add github:cherrchen/dsh-plugin-multi-root-workspace#v0.1.5
+dsh plugin --profile web add github:cherrchen/dsh-plugin-multi-root-workspace#v0.1.6
 ```
 
 ### Install from a local clone (development & debugging)
